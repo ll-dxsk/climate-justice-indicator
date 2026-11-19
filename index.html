@@ -4,12 +4,233 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Climate Justice Indicator</title>
+<meta name="description" content="가시적으로 드러나지 않는 기후정의·기후부정의를 분배·절차·인정 9개 지표로 측정합니다.">
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.6; }
+  :root {
+    --bg: #f7f6f2; --card: #ffffff; --ink: #1d1f1e; --muted: #5d6360; --line: #dcdad3;
+    --accent: #1f5f4a; --accent-ink: #ffffff;
+    --good: #2e7d4f; --mid: #b7791f; --bad: #b4412f; --na: #8a8f8c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141716; --card: #1c201f; --ink: #e8ebe9; --muted: #a2aaa6; --line: #333a37;
+      --accent: #5fb592; --accent-ink: #0d1411; --good: #5fb592; --mid: #e0a64a; --bad: #e57a66; --na: #8a928e; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; }
+  .wrap { max-width: 64rem; margin: 0 auto; padding: 0 16px; }
+  header { border-bottom: 1px solid var(--line); padding: 2.5rem 0 2rem; }
+  h1 { margin: 0; font: 700 clamp(1.8rem, 5vw, 2.6rem)/1.15 Georgia, "Times New Roman", serif; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: .6rem 0 0; max-width: 42rem; }
+  h2 { font: 700 1.3rem/1.3 Georgia, serif; margin: 2.5rem 0 1rem; }
+  section > p.hint { color: var(--muted); margin-top: -.5rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; }
+  label { display: block; font-weight: 600; margin-bottom: .35rem; }
+  input, textarea { width: 100%; font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .75rem; }
+  textarea { min-height: 5rem; resize: vertical; }
+  .field + .field { margin-top: 1rem; }
+  button { font: inherit; font-weight: 600; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: .65rem 1.4rem; cursor: pointer; margin-top: 1rem; }
+  button:disabled { opacity: .55; cursor: wait; }
+  .status { margin-top: .75rem; color: var(--muted); min-height: 1.6em; }
+  .status.err { color: var(--bad); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  th, td { padding: .7rem .8rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-size: .8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover, tbody tr.sel { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  td.name { white-space: normal; font-weight: 600; min-width: 12rem; }
+  td.name small { display: block; font-weight: 400; color: var(--muted); }
+  .num { font-variant-numeric: tabular-nums; }
+  .idx { display: flex; align-items: center; gap: .6rem; }
+  .bar { width: 6rem; height: .5rem; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar i { display: block; height: 100%; }
+  .badge { display: inline-block; font-size: .78rem; font-weight: 600; padding: .1rem .55rem; border-radius: 99px; color: #fff; }
+  .good { background: var(--good); } .mid { background: var(--mid); } .bad { background: var(--bad); } .na { background: var(--na); }
+  .tag { font-size: .75rem; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: .05rem .5rem; }
+  #detail { margin-top: 1.25rem; }
+  .detail-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+  .detail-head h3 { margin: 0; font: 700 1.25rem/1.3 Georgia, serif; }
+  .big { font: 700 2.4rem/1 Georgia, serif; text-align: right; }
+  .axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+  .axis h4 { margin: 0 0 .5rem; display: flex; justify-content: space-between; }
+  .ind { border-top: 1px solid var(--line); padding: .6rem 0; }
+  .ind-top { display: flex; justify-content: space-between; gap: .5rem; font-weight: 600; }
+  .score { font-variant-numeric: tabular-nums; flex: none; }
+  .ind p { margin: .25rem 0 0; color: var(--muted); font-size: .92rem; }
+  .ind ul { margin: .25rem 0 0; padding-left: 1.1rem; font-size: .85rem; }
+  .ind a { color: var(--accent); word-break: break-all; }
+  .note { margin-top: 1rem; padding: .8rem 1rem; border-left: 3px solid var(--accent); background: var(--bg); }
+  dl.levels { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; margin: 0; }
+  dl.levels dt { font-weight: 700; }
+  dl.levels dd { margin: 0; color: var(--muted); }
+  .method { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
+  .method ol { margin: .25rem 0 0; padding-left: 1.2rem; }
+  footer { margin: 3rem 0 0; padding: 1.5rem 0 2.5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
+  footer p { margin: .35rem 0; }
 </style>
 </head>
 <body>
-  <h1>Climate Justice Indicator</h1>
-  <p>준비 중입니다.</p>
+<header>
+  <div class="wrap">
+    <h1>Climate Justice Indicator</h1>
+    <p class="lede">수치로 잘 드러나지 않는 기후정의와 기후부정의를 측정합니다. 정의로운 전환 정책 사례를 분배·절차·인정 세 축, 9개 지표로 0~3점 채점하고 0~100 지수로 보여줍니다.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>새 사례 측정</h2>
+    <p class="hint">사례를 입력하면 AI가 공개자료를 웹에서 조사해 9개 지표를 채점합니다. 2~5분 정도 걸립니다.</p>
+    <form id="form" class="card">
+      <div class="field">
+        <label for="name">사례 이름</label>
+        <input id="name" maxlength="200" required placeholder="예: 독일 루사티아 석탄 지역 구조전환법">
+      </div>
+      <div class="field">
+        <label for="context">추가 설명 (선택)</label>
+        <textarea id="context" maxlength="2000" placeholder="평가 기간, 관심 있는 집단, 참고할 문서 등"></textarea>
+      </div>
+      <button id="go" type="submit">측정하기</button>
+      <div id="status" class="status" role="status"></div>
+    </form>
+  </section>
+
+  <section>
+    <h2>사례별 기후정의 지수</h2>
+    <p class="hint">행을 누르면 지표별 점수와 근거가 열립니다.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>사례</th><th>분배</th><th>절차</th><th>인정</th><th>종합 지수</th><th>채점</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div id="detail"></div>
+  </section>
+
+  <section>
+    <h2>측정 방법</h2>
+    <div class="method" id="method"></div>
+    <div class="card" style="margin-top:1rem">
+      <strong>공통 채점 기준</strong>
+      <dl class="levels" id="levels" style="margin-top:.5rem"></dl>
+      <p style="margin:.8rem 0 0;color:var(--muted)">
+        <b>자료 부족</b>은 자료를 찾지 못했거나 아직 평가할 시기가 아닌 경우이고, 0점으로 치지 않습니다.
+        <b>해당 없음</b>은 제도 구조상 대상이 없는 경우입니다. 둘 다 지수 계산에서 뺍니다.
+        지수 = 채점된 지표 점수 합 ÷ (채점된 지표 수 × 3) × 100.
+        등급(임시안): 67 이상 정의 실현, 34~66 부분적 정의, 33 이하 부정의.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>가정과 한계.</b> 지표와 채점 규칙은 인하대학교 「기후위기와 기후정의」 조별 프로젝트가 만든 제안이며 검증된 척도가 아닙니다.</p>
+    <p>팀 시범 채점은 2026년 11월까지의 공개자료 기준 잠정값입니다. AI 채점은 자동 웹 조사 결과라 틀릴 수 있으니, 반드시 근거 링크를 확인하세요.</p>
+    <p>사례마다 채점된 지표 수가 달라 종합 지수를 직접 비교하기보다 지표별 점수를 함께 보세요.</p>
+  </div>
+</footer>
+
+<script type="module">
+import { AXES, ALL, LEVELS, CASES, index, grade } from "./indicators.js";
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const KEY = "cji-ai-cases";
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) ?? []; } catch { return []; } };
+const save = list => { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {} };
+
+let cases = [...load(), ...CASES];
+let selected = null;
+
+const scoreText = v => v === "N" ? "자료 부족" : v === "X" ? "해당 없음" : `${v} / 3`;
+const axisIdx = (c, a) => index(c.s, a.indicators.map(i => i.id));
+const tone = idx => grade(idx).tone;
+const cell = idx => idx === null ? "—" : idx;
+
+function renderRows() {
+  document.getElementById("rows").innerHTML = cases.map((c, n) => {
+    const idx = index(c.s), g = grade(idx);
+    return `<tr data-n="${n}" class="${n === selected ? "sel" : ""}" tabindex="0">
+      <td class="name">${esc(c.name)}<small>${esc(c.region)}</small></td>
+      ${AXES.map(a => `<td class="num">${cell(axisIdx(c, a))}</td>`).join("")}
+      <td><div class="idx"><b class="num">${cell(idx)}</b>
+        <span class="bar"><i class="${g.tone}" style="width:${idx ?? 0}%"></i></span>
+        <span class="badge ${g.tone}">${g.label}</span></div></td>
+      <td><span class="tag">${c.source === "ai" ? "AI 조사" : "팀 시범"}</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderDetail() {
+  const el = document.getElementById("detail");
+  const c = cases[selected];
+  if (!c) { el.innerHTML = ""; return; }
+  const idx = index(c.s), g = grade(idx);
+  el.innerHTML = `<div class="card">
+    <div class="detail-head">
+      <div>
+        <h3>${esc(c.name)}</h3>
+        <div style="color:var(--muted)">${esc(c.region)}${c.scope ? " · " + esc(c.scope) : ""}</div>
+      </div>
+      <div><div class="big num">${cell(idx)}</div><span class="badge ${g.tone}">${g.label}</span></div>
+    </div>
+    ${c.summary ? `<p>${esc(c.summary)}</p>` : ""}
+    ${c.source === "team" ? `<p style="color:var(--muted)">팀 시범 채점(2026년 11월, 공개자료 기준 잠정값). 지표별 근거는 분배·절차·인정 지표 연구 보고서에 있습니다.</p>` : `<p style="color:var(--muted)">AI 조사 · 자료 신뢰도 ${esc(c.confidence)} · ${esc(c.date)}</p>`}
+    <div class="axes">${AXES.map(a => `<div class="axis">
+      <h4><span>${a.name}</span><span class="num">${cell(axisIdx(c, a))}</span></h4>
+      ${a.indicators.map(i => {
+        const v = c.s[i.id], d = c.detail?.[i.id];
+        return `<div class="ind">
+          <div class="ind-top"><span>${i.name}</span><span class="score badge ${typeof v === "number" ? tone(Math.round(v / 3 * 100)) : "na"}">${scoreText(v)}</span></div>
+          ${d?.reason ? `<p>${esc(d.reason)}</p>` : ""}
+          ${d?.sources?.length ? `<ul>${d.sources.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul>` : ""}
+        </div>`;
+      }).join("")}
+    </div>`).join("")}</div>
+    ${c.note ? `<div class="note">${esc(c.note)}</div>` : ""}
+  </div>`;
+}
+
+function select(n) { selected = n; renderRows(); renderDetail(); document.getElementById("detail").scrollIntoView({ behavior: "smooth", block: "start" }); }
+
+document.getElementById("rows").addEventListener("click", e => { const tr = e.target.closest("tr"); if (tr) select(+tr.dataset.n); });
+document.getElementById("rows").addEventListener("keydown", e => { const tr = e.target.closest("tr"); if (tr && e.key === "Enter") select(+tr.dataset.n); });
+
+document.getElementById("method").innerHTML = AXES.map(a => `<div class="card">
+  <strong>${a.name}</strong> <span style="color:var(--muted)">${a.en}</span>
+  <ol>${a.indicators.map(i => `<li>${i.name}</li>`).join("")}</ol></div>`).join("");
+document.getElementById("levels").innerHTML = Object.entries(LEVELS).map(([k, v]) => `<dt>${k}점</dt><dd>${v}</dd>`).join("");
+
+document.getElementById("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn = document.getElementById("go"), status = document.getElementById("status");
+  const name = document.getElementById("name").value.trim();
+  const context = document.getElementById("context").value.trim();
+  if (!name) return;
+  btn.disabled = true; status.className = "status";
+  const t0 = Date.now();
+  const tick = setInterval(() => { status.textContent = `공개자료 조사 중… ${Math.round((Date.now() - t0) / 1000)}초`; }, 1000);
+  try {
+    const r = await fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, context }) });
+    const data = await r.json().catch(() => ({ error: `서버 응답 오류 (${r.status})` }));
+    if (!r.ok) throw new Error(data.error || `오류 (${r.status})`);
+    const c = { ...data.case, s: data.s, detail: data.detail, confidence: data.confidence, note: data.note,
+      source: "ai", date: new Date().toLocaleDateString("ko-KR") };
+    c.name ||= name;
+    const mine = [c, ...load()].slice(0, 20);
+    save(mine);
+    cases = [c, ...cases];
+    status.textContent = "측정 완료";
+    select(0);
+  } catch (err) {
+    status.className = "status err";
+    status.textContent = err.message;
+  } finally {
+    clearInterval(tick); btn.disabled = false;
+  }
+});
+
+renderRows();
+</script>
 </body>
 </html>

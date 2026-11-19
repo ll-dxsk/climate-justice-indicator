@@ -1,0 +1,5 @@
+{
+  "functions": {
+    "api/rate.js": { "maxDuration": 300 }
+  }
+}
