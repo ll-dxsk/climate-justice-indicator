@@ -1,7 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { AXES, ALL, LEVELS } from "../indicators.js";
 
-const client = new Anthropic(); // ANTHROPIC_API_KEY (Vercel 환경 변수)
+// Gemini API (Google AI Studio 무료 키). 무료 등급에서 Google 검색 연동은 2.5 모델만 된다(하루 500회).
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 const rubric = AXES.map(a =>
   `## ${a.name}\n` + a.indicators.map(i => `- ${i.id} ${i.name}: ${i.rule}`).join("\n")
@@ -43,42 +44,39 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "사례 이름(200자 이내)과 설명(2000자 이내)을 확인해 주세요." });
   }
 
-  const messages = [{
-    role: "user",
-    content: `평가할 사례: ${name}` + (context ? `\n추가 설명: ${context}` : ""),
-  }];
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: "서버에 GEMINI_API_KEY가 설정되지 않았습니다." });
+  }
 
   try {
-    let msg;
-    // 서버 측 웹 검색이 길어지면 pause_turn으로 멈춘다. 그대로 이어서 보낸다.
-    for (let i = 0; i < 4; i++) {
-      msg = await client.beta.messages.stream({
-        model: "claude-opus-5-5",
-        max_tokens: 32000,
-        output_config: { effort: "medium" },
-        betas: ["server-side-fallback-2026-07-01"],
-        fallbacks: "default",
-        tools: [
-          { type: "web_search_20260209", name: "web_search", max_uses: 10 },
-          { type: "web_fetch_20260209", name: "web_fetch", max_uses: 5 },
-        ],
-        system: SYSTEM,
-        messages,
-      }).finalMessage();
-      if (msg.stop_reason !== "pause_turn") break;
-      messages.push({ role: "assistant", content: msg.content });
+    const r = await fetch(URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM }] },
+        contents: [{ role: "user", parts: [{ text: `평가할 사례: ${name}` + (context ? `\n추가 설명: ${context}` : "") }] }],
+        tools: [{ google_search: {} }],
+      }),
+    });
+    if (r.status === 429) {
+      return res.status(429).json({ error: "오늘 무료 사용량을 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 내일) 다시 시도해 주세요." });
+    }
+    if (!r.ok) {
+      console.error(r.status, await r.text());
+      return res.status(502).json({ error: `AI 평가 중 오류가 났습니다 (${r.status}).` });
     }
 
-    if (msg.stop_reason === "refusal") {
-      return res.status(422).json({ error: "이 사례는 평가할 수 없다는 응답을 받았습니다." });
-    }
-
-    const text = msg.content.filter(b => b.type === "text").map(b => b.text).join("");
-    return res.status(200).json(clean(parseJson(text)));
+    const cand = (await r.json()).candidates?.[0];
+    const text = (cand?.content?.parts ?? []).map(p => p.text ?? "").join("");
+    const out = clean(parseJson(text));
+    // 모델이 쓴 URL과 별개로, 실제로 검색된 문서 목록
+    out.refs = (cand?.groundingMetadata?.groundingChunks ?? [])
+      .map(c => c.web).filter(w => /^https?:\/\//i.test(w?.uri ?? ""))
+      .slice(0, 15).map(w => ({ title: String(w.title || w.uri).slice(0, 200), url: String(w.uri).slice(0, 1000) }));
+    return res.status(200).json(out);
   } catch (err) {
     console.error(err);
-    const status = err instanceof Anthropic.RateLimitError ? 429 : 502;
-    return res.status(status).json({ error: err instanceof SyntaxError
+    return res.status(502).json({ error: err instanceof SyntaxError
       ? "AI 응답을 해석하지 못했습니다. 다시 시도해 주세요."
       : "AI 평가 중 오류가 났습니다. 잠시 후 다시 시도해 주세요." });
   }

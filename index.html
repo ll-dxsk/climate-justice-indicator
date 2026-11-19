@@ -80,7 +80,7 @@
 <main class="wrap">
   <section>
     <h2>새 사례 측정</h2>
-    <p class="hint">사례를 입력하면 AI가 공개자료를 웹에서 조사해 9개 지표를 채점합니다. 2~5분 정도 걸립니다.</p>
+    <p class="hint">사례를 입력하면 AI가 공개자료를 웹에서 조사해 9개 지표를 채점합니다. 1~2분 정도 걸립니다.</p>
     <form id="form" class="card">
       <div class="field">
         <label for="name">사례 이름</label>
@@ -126,7 +126,7 @@
 <footer>
   <div class="wrap">
     <p><b>가정과 한계.</b> 지표와 채점 규칙은 인하대학교 「기후위기와 기후정의」 조별 프로젝트가 만든 제안이며 검증된 척도가 아닙니다.</p>
-    <p>팀 시범 채점은 2026년 11월까지의 공개자료 기준 잠정값입니다. AI 채점은 자동 웹 조사 결과라 틀릴 수 있으니, 반드시 근거 링크를 확인하세요.</p>
+    <p>팀 시범 채점은 2026년 11월까지의 공개자료 기준 잠정값입니다. AI 채점(Google Gemini 2.5 Flash, Google 검색 연동)은 자동 웹 조사 결과라 틀릴 수 있으니, 반드시 근거 링크를 확인하세요. 입력한 사례 내용은 Google로 전송됩니다.</p>
     <p>사례마다 채점된 지표 수가 달라 종합 지수를 직접 비교하기보다 지표별 점수를 함께 보세요.</p>
   </div>
 </footer>
@@ -188,6 +188,8 @@ function renderDetail() {
       }).join("")}
     </div>`).join("")}</div>
     ${c.note ? `<div class="note">${esc(c.note)}</div>` : ""}
+    ${c.refs?.length ? `<details style="margin-top:1rem"><summary>AI가 실제로 검색한 문서 ${c.refs.length}건</summary>
+      <ul style="font-size:.85rem">${c.refs.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${esc(s.title)}</a></li>`).join("")}</ul></details>` : ""}
   </div>`;
 }
 
@@ -214,7 +216,7 @@ document.getElementById("form").addEventListener("submit", async e => {
     const r = await fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, context }) });
     const data = await r.json().catch(() => ({ error: `서버 응답 오류 (${r.status})` }));
     if (!r.ok) throw new Error(data.error || `오류 (${r.status})`);
-    const c = { ...data.case, s: data.s, detail: data.detail, confidence: data.confidence, note: data.note,
+    const c = { ...data.case, s: data.s, detail: data.detail, confidence: data.confidence, note: data.note, refs: data.refs,
       source: "ai", date: new Date().toLocaleDateString("ko-KR") };
     c.name ||= name;
     const mine = [c, ...load()].slice(0, 20);
