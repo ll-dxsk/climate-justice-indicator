@@ -4,63 +4,68 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>기후정의 지수 · Climate Justice Indicator</title>
-<meta name="description" content="정의로운 전환 정책을 분배·절차·인정 9개 지표로 채점한 기후정의 지수.">
+<meta name="description" content="정의로운 전환 정책을 분배·절차·인정 9개 지표로 채점한 기후정의 지수입니다.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #fbfaf7; --ink: #151515; --sub: #5d5b56; --rule: #d6d3cb; --hair: #eceae4;
-    --good: #2f6b4f; --mid: #a8721a; --bad: #a33a2a; --na: #9a978f;
+    color-scheme: light;
+    --bg: #ffffff; --ink: #111111; --sub: #5f5f5f; --rule: #d9d9d9; --hair: #efefef;
+    --g1: #b3261e; --g2: #c2620a; --g3: #9a7600; --g4: #3d7d57; --g5: #1d5a38; --na: #8a8a8a;
     --serif: "Noto Serif KR", Georgia, serif;
     --sans: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif;
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --paper: #131312; --ink: #ebe9e4; --sub: #a6a39c; --rule: #3a3833; --hair: #23221f;
-      --good: #74b192; --mid: #d8a64c; --bad: #e07e68; --na: #7a776f; }
-  }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.7 var(--sans); word-break: keep-all; overflow-wrap: break-word; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15.5px/1.7 var(--sans); word-break: keep-all; overflow-wrap: break-word; }
   a { color: inherit; text-underline-offset: 2px; text-decoration-color: var(--rule); }
   a:hover { text-decoration-color: currentColor; }
   .wrap { max-width: 68rem; margin: 0 auto; padding: 0 16px; }
   .num { font-variant-numeric: tabular-nums; }
   .sub { color: var(--sub); }
 
-  /* 머리 */
-  .topline { border-bottom: 1px solid var(--ink); font-size: .78rem; color: var(--sub); }
-  .topline .wrap { display: flex; justify-content: space-between; gap: 1rem; padding-top: .5rem; padding-bottom: .5rem; }
-  header { border-bottom: 3px double var(--ink); padding: 2.2rem 0 1.6rem; }
-  h1 { margin: 0; font: 700 clamp(2rem, 6vw, 3.1rem)/1.1 var(--serif); letter-spacing: -.02em; }
-  .en { margin: .35rem 0 0; font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--sub); }
-  .dek { margin: 1rem 0 0; max-width: 44rem; font-size: 1.02rem; }
+  header { border-bottom: 2px solid var(--ink); padding: 2.6rem 0 1.6rem; }
+  h1 { margin: 0; font: 700 clamp(2rem, 6vw, 3rem)/1.15 var(--serif); letter-spacing: -.02em; }
+  .en { margin: .3rem 0 0; font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--sub); }
+  .dek { margin: 1rem 0 0; max-width: 46rem; font-size: 1.02rem; }
 
   h2 { font: 700 1.25rem/1.3 var(--serif); margin: 0; }
-  section { padding: 2rem 0; border-bottom: 1px solid var(--rule); }
-  section:last-of-type { border-bottom: 0; }
-  .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: .3rem 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-  .sec-head p { margin: 0; font-size: .88rem; color: var(--sub); }
+  h3.small { font: 600 .9rem var(--sans); margin: 0 0 .4rem; color: var(--sub); }
+  section { padding: 2.2rem 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: 0; padding-bottom: 3rem; }
+  .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: .3rem 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+  .sec-head p { margin: 0; font-size: .9rem; color: var(--sub); }
 
-  /* 측정 입력 */
+  /* 시연용 사례 목록 */
+  .picks { list-style: none; margin: 0 0 1.6rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr)); column-gap: 2.5rem; border-top: 1px solid var(--ink); }
+  .picks button { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 1.6rem 1fr auto; gap: .6rem; align-items: baseline; padding: .6rem .2rem; border-bottom: 1px solid var(--hair); cursor: pointer; }
+  .picks button:hover .nm { text-decoration: underline; text-underline-offset: 3px; }
+  .picks button:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .picks button[aria-disabled="true"] { cursor: wait; opacity: .5; }
+  .picks .no { font: 700 .9rem var(--serif); color: var(--sub); }
+  .picks .nm { font-weight: 500; }
+  .picks .rg { font-size: .8rem; color: var(--sub); white-space: nowrap; }
+
+  /* 직접 입력 */
   .row { display: flex; }
-  input, textarea { font: inherit; color: inherit; background: transparent; border: 1px solid var(--ink); border-radius: 0; padding: .6rem .75rem; width: 100%; min-width: 0; }
+  input, textarea { font: inherit; color: inherit; background: #fff; border: 1px solid var(--ink); border-radius: 0; padding: .6rem .75rem; width: 100%; min-width: 0; }
   input:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: -2px; }
   textarea { min-height: 4.5rem; resize: vertical; margin-top: .5rem; }
-  button { font: 600 .95rem var(--sans); background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 0; padding: 0 1.4rem; cursor: pointer; white-space: nowrap; }
-  button:disabled { opacity: .5; cursor: wait; }
+  button.go { font: 600 .95rem var(--sans); background: var(--ink); color: #fff; border: 1px solid var(--ink); border-radius: 0; padding: 0 1.4rem; cursor: pointer; white-space: nowrap; }
+  button.go:disabled { opacity: .5; cursor: wait; }
   details.more { margin-top: .6rem; font-size: .88rem; }
   details.more summary { cursor: pointer; color: var(--sub); }
-  .err { margin-top: .8rem; color: var(--bad); }
-  .err.warn { color: var(--mid); }
+  .err { margin-top: .8rem; color: var(--g1); }
+  .err.warn { color: var(--g2); }
 
   /* 진행 단계 */
-  .steps { list-style: none; margin: 1.2rem 0 0; padding: 0; border-top: 1px solid var(--ink); }
+  .steps { list-style: none; margin: 1.4rem 0 0; padding: 0; border-top: 1px solid var(--ink); }
   .steps li { display: grid; grid-template-columns: 1.8rem 8.5rem 1fr; gap: .2rem .8rem; padding: .6rem 0; border-bottom: 1px solid var(--hair); color: var(--sub); }
-  .steps li .no { font: 700 .95rem var(--serif); white-space: nowrap; }
+  .steps li .n { font: 700 .95rem var(--serif); white-space: nowrap; }
   .steps li b { font-weight: 600; }
   .steps li .msg { font-size: .9rem; min-width: 0; overflow-wrap: anywhere; }
   .steps li.now, .steps li.done { color: var(--ink); }
-  .steps li.done .no::after { content: "✓"; margin-left: .2rem; font: .8rem var(--sans); }
+  .steps li.done .n::after { content: "✓"; margin-left: .2rem; font: .8rem var(--sans); }
   .steps li.now b::after { content: ""; display: inline-block; width: .45rem; height: .45rem; margin-left: .45rem; background: var(--ink); vertical-align: middle; animation: blink 1s steps(2) infinite; }
   @keyframes blink { 50% { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .steps li.now b::after { animation: none; } }
@@ -77,7 +82,7 @@
   th.r, td.r { text-align: right; }
   td { padding: .75rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; white-space: nowrap; }
   tbody tr { cursor: pointer; }
-  tbody tr:hover, tbody tr.sel { background: var(--hair); }
+  tbody tr:hover, tbody tr.sel { background: #f6f6f6; }
   tbody tr:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
   td.name { white-space: normal; min-width: 13rem; }
   td.name b { font-weight: 600; }
@@ -86,11 +91,11 @@
   .idx strong { font: 700 1.15rem var(--serif); text-align: right; }
   .bar { height: 4px; background: var(--hair); }
   .bar i { display: block; height: 100%; }
-  .grade { font-size: .85rem; font-weight: 500; }
+  .grade { font-size: .85rem; font-weight: 600; }
   .grade::before { content: ""; display: inline-block; width: .55rem; height: .55rem; margin-right: .4rem; background: currentColor; }
-  .t-good { color: var(--good); } .t-mid { color: var(--mid); } .t-bad { color: var(--bad); } .t-na { color: var(--na); }
-  .b-good { background: var(--good); } .b-mid { background: var(--mid); } .b-bad { background: var(--bad); } .b-na { background: var(--na); }
-  .src { font-size: .78rem; letter-spacing: .08em; color: var(--sub); }
+  .t-g1 { color: var(--g1); } .t-g2 { color: var(--g2); } .t-g3 { color: var(--g3); } .t-g4 { color: var(--g4); } .t-g5 { color: var(--g5); } .t-na { color: var(--na); }
+  .b-g1 { background: var(--g1); } .b-g2 { background: var(--g2); } .b-g3 { background: var(--g3); } .b-g4 { background: var(--g4); } .b-g5 { background: var(--g5); } .b-na { background: var(--na); }
+  .src { font-size: .8rem; color: var(--sub); }
 
   /* 상세 */
   #detail:not(:empty) { margin-top: 2rem; border-top: 2px solid var(--ink); padding-top: 1.2rem; }
@@ -120,39 +125,41 @@
   .method h3 { margin: 0 0 .3rem; font: 700 1rem var(--serif); border-bottom: 1px solid var(--ink); padding-bottom: .3rem; }
   .method h3 span { font: 400 .78rem var(--sans); color: var(--sub); margin-left: .4rem; letter-spacing: .05em; }
   .method ol { margin: .4rem 0 0; padding-left: 1.2rem; }
-  dl.levels { display: grid; grid-template-columns: 3rem 1fr; gap: .3rem 1rem; margin: 1.6rem 0 0; }
+  .sub-block { margin-top: 2rem; }
+  dl.levels { display: grid; grid-template-columns: 3rem 1fr; gap: .3rem 1rem; margin: 0; }
   dl.levels dt { font: 700 1rem var(--serif); }
   dl.levels dd { margin: 0; }
-  .rules { margin: 1.2rem 0 0; font-size: .9rem; color: var(--sub); max-width: 48rem; }
-
-  footer { border-top: 1px solid var(--ink); padding: 1.4rem 0 2.6rem; color: var(--sub); font-size: .84rem; }
-  footer p { margin: .3rem 0; max-width: 52rem; }
+  table.grades td { white-space: normal; cursor: default; }
+  table.grades tr:hover { background: none; }
+  table.grades td:first-child { white-space: nowrap; font: 700 1rem var(--serif); }
+  .rules { margin: 1rem 0 0; font-size: .9rem; color: var(--sub); max-width: 50rem; }
 
   @media (max-width: 560px) {
     .steps li { grid-template-columns: 1.8rem 1fr; }
     .steps li .msg, .ticks { grid-column: 2; }
-    .row button { padding: 0 1rem; }
+    button.go { padding: 0 1rem; }
   }
 </style>
 </head>
 <body>
-<div class="topline"><div class="wrap"><span>「기후위기와 기후정의」 조별 프로젝트</span><span>2026</span></div></div>
 <header>
   <div class="wrap">
     <h1>기후정의 지수</h1>
     <p class="en">Climate Justice Indicator</p>
-    <p class="dek">정의로운 전환 정책이 비용과 혜택을 어떻게 나누는지(분배), 누구를 결정에 참여시키는지(절차), 누구를 지원 대상으로 인정하는지(인정)를 9개 지표로 채점해 0~100 지수로 나타낸다.</p>
+    <p class="dek">정의로운 전환 정책이 비용과 혜택을 어떻게 나누는지(분배), 누구를 결정에 참여시키는지(절차), 누구를 지원 대상으로 인정하는지(인정)를 9개 지표로 채점해 0~100 지수로 나타냅니다.</p>
   </div>
 </header>
 
 <main class="wrap">
   <section>
-    <div class="sec-head"><h2>사례 측정</h2><p>정책 이름을 넣으면 공개 문서를 검색해 9개 지표를 채점한다. 1~2분 걸린다.</p></div>
+    <div class="sec-head"><h2>사례 측정</h2><p>사례를 고르면 공개 문서를 검색해 9개 지표를 채점합니다. 1분 안팎 걸립니다.</p></div>
+    <h3 class="small">사례 목록</h3>
+    <ol class="picks" id="picks"></ol>
     <form id="form">
-      <label for="name" class="sub" style="font-size:.85rem">사례 이름</label>
+      <label for="name" class="small sub" style="display:block;font-size:.9rem;font-weight:600;margin-bottom:.4rem">직접 입력</label>
       <div class="row">
         <input id="name" maxlength="200" required placeholder="예: 독일 루사티아 석탄 지역 구조전환법">
-        <button id="go" type="submit">측정</button>
+        <button id="go" class="go" type="submit">측정</button>
       </div>
       <details class="more"><summary>추가 설명 (선택)</summary>
         <textarea id="context" maxlength="2000" aria-label="추가 설명" placeholder="평가 기간, 관심 있는 집단, 참고할 문서 등"></textarea>
@@ -160,9 +167,9 @@
     </form>
     <div id="progress" hidden>
       <ol class="steps">
-        <li data-step="plan"><span class="no">1</span><b>검색어 정하기</b><span class="msg"></span></li>
-        <li data-step="search"><span class="no">2</span><b>공개 문서 검색</b><span class="msg"></span></li>
-        <li data-step="score"><span class="no">3</span><b>지표 채점</b><span class="msg"></span><div class="ticks" id="ticks"></div></li>
+        <li data-step="plan"><span class="n">1</span><b>검색어 정하기</b><span class="msg"></span></li>
+        <li data-step="search"><span class="n">2</span><b>공개 문서 검색</b><span class="msg"></span></li>
+        <li data-step="score"><span class="n">3</span><b>지표 채점</b><span class="msg"></span><div class="ticks" id="ticks"></div></li>
       </ol>
       <p class="clock" id="clock" role="status"></p>
     </div>
@@ -170,7 +177,7 @@
   </section>
 
   <section>
-    <div class="sec-head"><h2>사례별 지수</h2><p>행을 누르면 지표별 점수와 근거를 볼 수 있다.</p></div>
+    <div class="sec-head"><h2>사례별 지수</h2><p>행을 누르면 지표별 점수와 근거를 볼 수 있습니다.</p></div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>사례</th><th class="r">분배</th><th class="r">절차</th><th class="r">인정</th><th>종합 지수</th><th>채점</th></tr></thead>
@@ -183,32 +190,53 @@
   <section>
     <div class="sec-head"><h2>측정 방법</h2></div>
     <div class="method" id="method"></div>
-    <dl class="levels" id="levels"></dl>
-    <p class="rules">
-      자료를 찾지 못했거나 아직 평가할 시기가 아니면 <b>자료 부족</b>, 제도 구조상 대상이 없으면 <b>해당 없음</b>으로 두고 둘 다 지수 계산에서 뺀다.
-      지수 = 채점된 지표 점수 합 ÷ (채점된 지표 수 × 3) × 100.
-      등급(임시안): 67 이상 정의 실현, 34~66 부분적 정의, 33 이하 부정의.
-    </p>
+
+    <div class="sub-block">
+      <h3 class="small">지표 채점 기준</h3>
+      <dl class="levels" id="levels"></dl>
+      <p class="rules">
+        자료를 찾지 못했거나 아직 평가할 시기가 아니면 <b>자료 부족</b>, 제도 구조상 대상이 없으면 <b>해당 없음</b>으로 두고, 둘 다 지수 계산에서 뺍니다.
+      </p>
+    </div>
+
+    <div class="sub-block">
+      <h3 class="small">등급 기준</h3>
+      <div class="table-wrap">
+        <table class="grades">
+          <thead><tr><th>지수</th><th>등급</th><th>지표 평균</th><th>의미</th></tr></thead>
+          <tbody id="grades"></tbody>
+        </table>
+      </div>
+      <p class="rules">지수 = 채점된 지표 점수의 합 ÷ (채점된 지표 수 × 3) × 100. 등급 구간은 팀 임시안입니다.</p>
+    </div>
   </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <p><b>가정과 한계.</b> 지표와 채점 규칙은 인하대학교 「기후위기와 기후정의」 조별 프로젝트의 제안이며 검증된 척도가 아니다.</p>
-    <p>팀 시범 채점은 2026년 11월까지의 공개자료 기준 잠정값이다. AI 채점은 Tavily로 찾은 웹 문서의 일부만 읽고 Google Gemini가 매긴 점수라 틀릴 수 있고, 같은 사례도 측정할 때마다 조금씩 달라질 수 있다. 근거 링크를 직접 확인할 것. 입력한 사례 내용은 Tavily와 Google로 전송된다.</p>
-    <p>사례마다 채점된 지표 수가 달라 종합 지수만으로 비교하기보다 지표별 점수를 함께 봐야 한다.</p>
-  </div>
-</footer>
-
 <script type="module">
-import { AXES, ALL, LEVELS, CASES, index, grade } from "./indicators.js";
+import { AXES, ALL, LEVELS, CASES, GRADES, index, grade } from "./indicators.js";
+
+// 발표 시연용 사례. 누르면 바로 측정합니다.
+const DEMO = [
+  ["독일 석탄지역 구조강화법 (Strukturstärkungsgesetz, 2020)", "독일"],
+  ["스페인 정의로운 전환 협약 (Convenios de Transición Justa)", "스페인"],
+  ["체코 정의로운 전환 프로그램 (모라비아-실레지아·우스티·카를로비바리)", "체코"],
+  ["스코틀랜드 정의로운 전환 위원회 (Just Transition Commission)", "영국"],
+  ["캐나다 석탄발전 노동자·지역 정의로운 전환 태스크포스", "캐나다"],
+  ["미국 인플레이션 감축법(IRA) 에너지 커뮤니티 지원", "미국"],
+  ["칠레 석탄화력발전 단계적 폐지 계획", "칠레"],
+  ["베트남 정의로운 에너지 전환 파트너십 (JETP)", "베트남"],
+  ["호주 라트로브 밸리 전환 지원 (Hazelwood 발전소 폐쇄)", "호주"],
+  ["한국 폐광지역 개발 지원에 관한 특별법", "대한민국"],
+];
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-// AI 측정 결과는 저장하지 않는다: 새 측정이 이전 결과를 대체하고, 새로고침하면 사라진다.
+
+// AI 측정 결과는 저장하지 않습니다: 새 측정이 이전 결과를 대체하고, 새로고침하면 사라집니다.
 try { localStorage.removeItem("cji-ai-cases"); } catch {}  // 예전 버전이 브라우저에 저장해 둔 결과 정리
 let cases = [...CASES];
 let selected = null;
+let busy = false;
 
 const short = a => a.name.split(/적? |의 /)[0];  // 분배적 정의 → 분배, 인정의 정의 → 인정
 const axisIdx = (c, a) => index(c.s, a.indicators.map(i => i.id));
@@ -226,7 +254,7 @@ function renderRows() {
       <td><div class="idx"><strong class="num">${cell(idx)}</strong>
         <span class="bar"><i class="b-${g.tone}" style="width:${idx ?? 0}%"></i></span>
         <span class="grade t-${g.tone}">${g.label}</span></div></td>
-      <td><span class="src">${c.source === "ai" ? "AI" : "팀"}</span></td>
+      <td><span class="src">${c.source === "ai" ? "AI 조사" : "팀 시범"}</span></td>
     </tr>`;
   }).join("");
 }
@@ -240,7 +268,9 @@ function renderDetail() {
       <div>
         <h3>${esc(c.name)}</h3>
         <div class="meta">${esc(c.region)}${c.scope ? " · " + esc(c.scope) : ""}</div>
-        <div class="meta">${c.source === "team" ? "팀 시범 채점 · 2026년 11월 공개자료 기준 잠정값" : `AI 조사 · 자료 신뢰도 ${esc(c.confidence)} · ${esc(c.date)}`}</div>
+        <div class="meta">${c.source === "team"
+          ? "팀 시범 채점 · 2026년 11월 공개자료 기준 잠정값"
+          : `AI 조사 · 자료 신뢰도 ${esc(c.confidence)} · ${esc(c.date)} · AI 채점은 틀릴 수 있으니 근거 링크를 확인해 주세요.`}</div>
       </div>
       <div class="d-score"><strong class="num">${cell(idx)}</strong><span class="grade t-${g.tone}">${g.label}</span></div>
     </div>
@@ -267,12 +297,26 @@ function select(n) { selected = n; renderRows(); renderDetail(); $("detail").scr
 $("rows").addEventListener("click", e => { const tr = e.target.closest("tr"); if (tr) select(+tr.dataset.n); });
 $("rows").addEventListener("keydown", e => { const tr = e.target.closest("tr"); if (tr && e.key === "Enter") select(+tr.dataset.n); });
 
+$("picks").innerHTML = DEMO.map(([name, region], n) => `<li><button type="button" data-name="${esc(name)}">
+  <span class="no">${n + 1}</span><span class="nm">${esc(name)}</span><span class="rg">${esc(region)}</span></button></li>`).join("");
+$("picks").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b || busy) return;
+  $("name").value = b.dataset.name;
+  $("context").value = "";
+  $("form").requestSubmit();
+});
+
 $("method").innerHTML = AXES.map(a => `<div>
   <h3>${a.name}<span>${a.en}</span></h3>
   <ol>${a.indicators.map(i => `<li>${i.name}</li>`).join("")}</ol></div>`).join("");
 $("levels").innerHTML = Object.entries(LEVELS).map(([k, v]) => `<dt>${k}점</dt><dd>${v}</dd>`).join("");
+$("grades").innerHTML = GRADES.map((g, i) => `<tr>
+  <td class="num">${g.min}~${i ? GRADES[i - 1].min - 1 : 100}</td>
+  <td><span class="grade t-${g.tone}">${g.label}</span></td>
+  <td class="num">${g.avg}</td><td>${g.desc}</td></tr>`).join("");
 
-// 진행 단계: 서버가 보내는 {step} 줄에 맞춰 갱신한다. 꾸며낸 진행률은 쓰지 않는다.
+// 진행 단계: 서버가 보내는 {step} 줄에 맞춰 갱신합니다. 꾸며낸 진행률은 쓰지 않습니다.
 function stepState(s, state, msg) {
   const li = document.querySelector(`.steps li[data-step="${s}"]`);
   li.className = state;
@@ -285,9 +329,9 @@ function resetProgress() {
 }
 let docCount = 0;
 function onStep(m) {
-  if (m.step === "plan") stepState("plan", "now", "사례에 맞는 검색어를 만드는 중");
-  if (m.step === "search") { stepState("plan", "done", m.queries.join(" · ")); stepState("search", "now", `검색어 ${m.queries.length}개로 찾는 중`); }
-  if (m.step === "read") { docCount = m.n; stepState("search", "done", `관련 문서 ${m.n}건`); stepState("score", "now", `문서 ${m.n}건을 읽는 중`); }
+  if (m.step === "plan") stepState("plan", "now", "사례에 맞는 검색어를 만들고 있습니다.");
+  if (m.step === "search") { stepState("plan", "done", m.queries.join(" · ")); stepState("search", "now", `검색어 ${m.queries.length}개로 문서를 찾고 있습니다.`); }
+  if (m.step === "read") { docCount = m.n; stepState("search", "done", `관련 문서 ${m.n}건을 찾았습니다.`); stepState("score", "now", `문서 ${m.n}건을 읽고 있습니다.`); }
   if (m.step === "axis") {
     const a = AXES.find(a => a.indicators.some(i => i.id === m.id)), ind = ALL.find(i => i.id === m.id);
     document.querySelector(`.ticks i[data-id="${m.id}"]`)?.classList.add("on");
@@ -295,7 +339,7 @@ function onStep(m) {
   }
   if (m.step === "retry") {
     document.querySelectorAll(".ticks i").forEach(i => i.classList.remove("on"));
-    stepState("score", "now", `응답이 늦어 다른 모델(${m.model})로 다시 채점하는 중`);
+    stepState("score", "now", `응답이 끊겨 다른 모델(${m.model})로 다시 채점하고 있습니다.`);
   }
 }
 
@@ -303,7 +347,7 @@ async function measure(name, context) {
   const r = await fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, context }) });
   if (!r.ok || !r.body) {
     const d = await r.json().catch(() => ({}));
-    throw new Error(d.error || `서버 오류 (${r.status})`);
+    throw new Error(d.error || `서버 오류가 났습니다 (${r.status}).`);
   }
   const reader = r.body.pipeThrough(new TextDecoderStream()).getReader();
   let buf = "";
@@ -324,24 +368,31 @@ async function measure(name, context) {
   throw new Error("응답이 중간에 끊겼습니다. 다시 시도해 주세요.");
 }
 
+function setBusy(on) {
+  busy = on;
+  $("go").disabled = on;
+  document.querySelectorAll(".picks button").forEach(b => b.setAttribute("aria-disabled", on));
+}
+
 $("form").addEventListener("submit", async e => {
   e.preventDefault();
   const name = $("name").value.trim(), context = $("context").value.trim();
-  if (!name) return;
-  $("go").disabled = true;
+  if (!name || busy) return;
+  setBusy(true);
   resetProgress();
+  $("progress").scrollIntoView({ behavior: "smooth", block: "nearest" });
   const t0 = Date.now();
   const tick = () => { $("clock").textContent = `경과 ${Math.round((Date.now() - t0) / 1000)}초`; };
   tick();
   const timer = setInterval(tick, 1000);
   try {
     const data = await measure(name, context);
-    stepState("score", "done", `9개 지표 채점 완료 (문서 ${docCount}건 근거)`);
+    stepState("score", "done", `9개 지표 채점을 마쳤습니다 (문서 ${docCount}건 근거).`);
     const c = { ...data.case, s: data.s, detail: data.detail, confidence: data.confidence, note: data.note, refs: data.refs, queries: data.queries,
       source: "ai", date: new Date().toLocaleDateString("ko-KR") };
     c.name ||= name;
     cases = [c, ...CASES];
-    // 근거가 거의 없으면 대개 사례 이름이 모호해서 엉뚱한 문서가 검색된 경우다.
+    // 근거가 거의 없으면 대개 사례 이름이 모호해서 엉뚱한 문서가 검색된 경우입니다.
     const scored = ALL.filter(i => typeof c.s[i.id] === "number").length;
     if (scored <= 2) {
       $("err").className = "err warn";
@@ -355,7 +406,7 @@ $("form").addEventListener("submit", async e => {
     $("err").hidden = false;
     document.querySelector(".steps li.now")?.classList.remove("now");
   } finally {
-    clearInterval(timer); tick(); $("go").disabled = false;
+    clearInterval(timer); tick(); setBusy(false);
   }
 });
 

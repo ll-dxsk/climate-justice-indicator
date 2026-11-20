@@ -2,10 +2,10 @@
 // 출처: 조별논의 회의록(2026-11-04), 분배(신현수)·절차(전세진)·인정(박병현) 지표 연구.
 
 export const LEVELS = {
-  0: "관련 제도·계획·실적이 없다는 점을 자료로 확인함",
-  1: "목표·선언·협약·계획만 확인됨",
-  2: "법령·예산·운영기구·지원 기준 등 실행 체계가 마련됨",
-  3: "실제 지급·참여·재취업·부담 완화 등 집행 실적과 결과가 확인됨",
+  0: "관련 제도·계획·실적이 없다는 점이 자료로 확인됩니다.",
+  1: "목표·선언·협약·계획만 확인됩니다.",
+  2: "법령·예산·운영기구·지원 기준 등 실행 체계가 마련되어 있습니다.",
+  3: "실제 지급·참여·재취업·부담 완화 등 집행 실적과 결과가 확인됩니다.",
 };
 
 export const AXES = [
@@ -67,10 +67,16 @@ export function index(s, ids = ALL.map(i => i.id)) {
   return nums.length ? Math.round(nums.reduce((a, b) => a + b, 0) / (nums.length * 3) * 100) : null;
 }
 
-// ponytail: 등급 구간은 팀 임시안. 팀 합의 후 숫자만 바꾼다.
+// 5단계 등급. 지수 = 평균 점수 ÷ 3 × 100이라 구간은 평균 점수 1.0·1.5·2.0·2.5에 맞춘 것이다.
+// 높은 등급부터 적는다. 팀 임시안이며, 바꿀 때는 이 표만 고친다.
+export const GRADES = [
+  { min: 83, label: "정의 실현", tone: "g5", avg: "2.5점 이상", desc: "대부분의 지표에서 실제 집행 성과가 확인됩니다." },
+  { min: 67, label: "제도적 정의", tone: "g4", avg: "2.0~2.5점", desc: "집행 체계가 갖춰졌고 일부 지표에서 성과가 보입니다." },
+  { min: 50, label: "부분적 정의", tone: "g3", avg: "1.5~2.0점", desc: "집행 체계를 갖춘 지표와 선언·계획에 머문 지표가 섞여 있습니다." },
+  { min: 34, label: "형식적 정의", tone: "g2", avg: "1.0~1.5점", desc: "대부분 선언·계획에 머물고 집행 체계는 드뭅니다." },
+  { min: 0, label: "부정의", tone: "g1", avg: "1.0점 이하", desc: "제도가 없거나 선언조차 미흡한 지표가 대부분입니다." },
+];
 export function grade(idx) {
   if (idx === null) return { label: "평가 유보", tone: "na" };
-  if (idx >= 67) return { label: "정의 실현", tone: "good" };
-  if (idx >= 34) return { label: "부분적 정의", tone: "mid" };
-  return { label: "부정의", tone: "bad" };
+  return GRADES.find(g => idx >= g.min);
 }
