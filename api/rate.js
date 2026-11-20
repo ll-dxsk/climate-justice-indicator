@@ -83,7 +83,7 @@ export default async function handler(req, res) {
   try {
     const caseText = `평가할 사례: ${name}` + (context ? `\n추가 설명: ${context}` : "");
     send({ step: "plan" });
-    const queries = await planQueries(name, caseText);
+    const queries = await planQueries(name, caseText, why => send({ step: "plan-fallback", why }));
     send({ step: "search", queries });
     const docs = await searchAll(queries);
     if (!docs.length) throw new ApiError(404, "이 사례로 검색된 문서가 없습니다. 사례 이름을 더 구체적으로(영문 정책명 등) 적어 보세요.");
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
     const rated = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`, RATE_MODELS, {
       // 모델이 쓰는 JSON에 지표 id가 나타날 때마다 "그 지표 채점 중"으로 알린다.
       onText: t => { for (const [, id] of t.matchAll(/"id"\s*:\s*"([dpr][1-3])"/g)) if (!seen.has(id)) { seen.add(id); send({ step: "axis", id }); } },
-      onRetry: model => { seen.clear(); send({ step: "retry", model }); },
+      onRetry: (model, why) => { seen.clear(); send({ step: "retry", model, why }); },
     });
     const out = clean(rated, new Set(docs.map(d => d.url)));
     out.refs = docs.map(({ title, url, score }) => ({ title, url, score }));
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error(err);
     send({ error: err instanceof ApiError ? err.message : err instanceof SyntaxError
-      ? "AI 응답을 해석하지 못했습니다. 다시 시도해 주세요."
+      ? `AI 응답을 해석하지 못했습니다 (${err.message}). 다시 시도해 주세요.`
       : "AI 평가 중 오류가 났습니다. 잠시 후 다시 시도해 주세요." });
   }
   res.end();
@@ -116,8 +116,9 @@ const partsText = d => (d?.candidates?.[0]?.content?.parts ?? []).map(p => p.tex
 async function gemini(system, user, models, hooks = {}) {
   for (const [i, [model, ms]] of models.entries()) {
     const last = i === models.length - 1;
-    const next = () => { console.error("gemini fallback from", model); hooks.onRetry?.(models[i + 1][0]); };
-    let r, text;
+    // why: 다음 모델로 넘어간 이유(503·429·timeout·bad-json:<finishReason>). 진행 이벤트와 로그에 남긴다.
+    const next = why => { console.error("gemini fallback", model, why); hooks.onRetry?.(models[i + 1][0], why); };
+    let r, text, finish;
     try {
       const method = hooks.onText ? "streamGenerateContent?alt=sse" : "generateContent";
       r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:${method}`, {
@@ -130,47 +131,52 @@ async function gemini(system, user, models, hooks = {}) {
         }),
         signal: AbortSignal.timeout(ms),
       });
-      if (r.ok) text = hooks.onText ? await readSse(r.body, hooks.onText) : partsText(await r.json());
+      if (r.ok && hooks.onText) ({ text, finish } = await readSse(r.body, hooks.onText));
+      else if (r.ok) { const d = await r.json(); text = partsText(d); finish = d.candidates?.[0]?.finishReason; }
     } catch (err) {
       if (err.name !== "TimeoutError") throw err;
       if (last) throw new ApiError(504, "AI 응답이 너무 늦습니다. 잠시 후 다시 시도해 주세요.");
-      next(); continue;
+      next("timeout"); continue;
     }
-    if ((r.status === 503 || r.status === 429) && !last) { next(); continue; }
+    if ((r.status === 503 || r.status === 429) && !last) { next(String(r.status)); continue; }
     if (r.status === 429) throw new ApiError(429, "AI 무료 사용량을 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 내일) 다시 시도해 주세요.");
     if (!r.ok) { console.error("gemini", r.status, model, await r.text()); throw new ApiError(502, `AI 평가 중 오류가 났습니다 (Gemini ${r.status}).`); }
-    try { return parseJson(text); } catch (err) {
-      console.error("gemini bad json", model, text.slice(0, 200));
-      if (last) throw err;
-      next();
+    try { return parseJson(text); } catch {
+      console.error("gemini bad json", model, finish, text.length, text.slice(0, 200));
+      if (last) throw new SyntaxError(`${finish ?? "?"}, ${text.length}자`);
+      next(`bad-json:${finish ?? "?"}:${text.length}`);
     }
   }
 }
 
 async function readSse(body, onText) {
   const dec = new TextDecoder();
-  let buf = "", text = "";
+  let buf = "", text = "", finish;
   for await (const chunk of body) {
     buf += dec.decode(chunk, { stream: true });
     const lines = buf.split("\n");
     buf = lines.pop();
     for (const line of lines) {
       if (!line.startsWith("data:")) continue;
-      text += partsText(JSON.parse(line.slice(5)));
+      const d = JSON.parse(line.slice(5));
+      text += partsText(d);
+      finish = d.candidates?.[0]?.finishReason ?? finish;
       onText(text);
     }
   }
-  return text;
+  return { text, finish };
 }
 
-export async function planQueries(name, caseText) {
+export async function planQueries(name, caseText, onFail) {
   try {
     const q = ((await gemini(PLANNER, caseText, PLAN_MODELS)).queries ?? [])
       .map(s => String(s ?? "").trim()).filter(Boolean).slice(0, 4);
     if (q.length) return q;
+    onFail?.("빈 검색어");
   } catch (err) {
     if (err instanceof ApiError && err.status === 429) throw err;
     console.error("planner", err);
+    onFail?.(err instanceof SyntaxError ? `bad-json:${err.message}` : err.message);
   }
   return FALLBACK.map(k => `${name} ${k}`.trim());
 }
