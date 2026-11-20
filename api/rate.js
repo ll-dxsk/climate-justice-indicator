@@ -4,9 +4,10 @@ import { AXES, ALL, LEVELS } from "../indicators.js";
 // Gemini 무료 등급은 Google 검색 연동이 안 돼서 검색을 따로 한다.
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 const LITE = "gemini-3.5-flash-lite";
-// [모델, 제한 ms]. 503·429·시간 초과면 다음 모델로. 합계(30+20+140+90초)는 Vercel 제한 300초 안.
+// [모델, 제한 ms]. 503·429·시간 초과면 다음 모델로. 합계(30+20+90+140초)는 Vercel 제한 300초 안.
+// 채점은 빠른 flash-lite가 먼저(실측 약 50초), 막힐 때만 3.8-flash. 3.8-flash는 무료 등급에서 자주 503·140초 초과.
 const PLAN_MODELS = [[LITE, 30000]];
-const RATE_MODELS = [[MODEL, 140000], [LITE, 90000]];
+const RATE_MODELS = [[LITE, 90000], [MODEL, 140000]];
 const SEARCH_MS = 20000;
 
 // 측정 1건 = 검색 4회. 검색어는 Gemini가 공식 정책명(영어·현지어)으로 만들고, 실패하면 고정 키워드를 쓴다.
