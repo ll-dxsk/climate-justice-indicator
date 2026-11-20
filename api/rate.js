@@ -76,33 +76,49 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: `서버에 ${missing.join(", ")}가 설정되지 않았습니다.` });
   }
 
+  // 여기부터는 한 줄에 JSON 하나씩(NDJSON) 진행 단계를 흘려보낸다. 마지막 줄은 {result} 또는 {error}.
+  res.writeHead(200, { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" });
+  const send = o => res.write(JSON.stringify(o) + "\n");
   try {
     const caseText = `평가할 사례: ${name}` + (context ? `\n추가 설명: ${context}` : "");
+    send({ step: "plan" });
     const queries = await planQueries(name, caseText);
+    send({ step: "search", queries });
     const docs = await searchAll(queries);
-    if (!docs.length) return res.status(404).json({ error: "이 사례로 검색된 문서가 없습니다. 사례 이름을 더 구체적으로(영문 정책명 등) 적어 보세요." });
+    if (!docs.length) throw new ApiError(404, "이 사례로 검색된 문서가 없습니다. 사례 이름을 더 구체적으로(영문 정책명 등) 적어 보세요.");
+    send({ step: "read", n: docs.length });
 
     const list = docs.map((d, i) => `[${i + 1}] ${d.title}\nURL: ${d.url}\n${d.text}`).join("\n\n---\n\n");
-    const text = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`, RATE_MODELS);
+    const seen = new Set();
+    const text = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`, RATE_MODELS, {
+      // 모델이 쓰는 JSON에 지표 id가 나타날 때마다 "그 지표 채점 중"으로 알린다.
+      onText: t => { for (const [, id] of t.matchAll(/"id"\s*:\s*"([dpr][1-3])"/g)) if (!seen.has(id)) { seen.add(id); send({ step: "axis", id }); } },
+      onRetry: model => { seen.clear(); send({ step: "retry", model }); },
+    });
     const out = clean(parseJson(text), new Set(docs.map(d => d.url)));
     out.refs = docs.map(({ title, url, score }) => ({ title, url, score }));
     out.queries = queries;
-    return res.status(200).json(out);
+    send({ result: out });
   } catch (err) {
     console.error(err);
-    if (err instanceof ApiError) return res.status(err.status).json({ error: err.message });
-    return res.status(502).json({ error: err instanceof SyntaxError
+    send({ error: err instanceof ApiError ? err.message : err instanceof SyntaxError
       ? "AI 응답을 해석하지 못했습니다. 다시 시도해 주세요."
       : "AI 평가 중 오류가 났습니다. 잠시 후 다시 시도해 주세요." });
   }
+  res.end();
 }
 
-async function gemini(system, user, models) {
+const partsText = d => (d?.candidates?.[0]?.content?.parts ?? []).map(p => p.text ?? "").join("");
+
+// hooks.onText가 있으면 스트리밍(SSE)으로 받아 지금까지 쓴 글 전체를 넘겨준다.
+async function gemini(system, user, models, hooks = {}) {
   for (const [i, [model, ms]] of models.entries()) {
     const last = i === models.length - 1;
-    let r, data;
+    const next = () => { console.error("gemini fallback from", model); hooks.onRetry?.(models[i + 1][0]); };
+    let r, text;
     try {
-      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      const method = hooks.onText ? "streamGenerateContent?alt=sse" : "generateContent";
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:${method}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
         body: JSON.stringify({
@@ -111,19 +127,33 @@ async function gemini(system, user, models) {
         }),
         signal: AbortSignal.timeout(ms),
       });
-      if (r.ok) data = await r.json();
+      if (r.ok) text = hooks.onText ? await readSse(r.body, hooks.onText) : partsText(await r.json());
     } catch (err) {
       if (err.name !== "TimeoutError") throw err;
-      console.error("gemini timeout", model);
       if (last) throw new ApiError(504, "AI 응답이 너무 늦습니다. 잠시 후 다시 시도해 주세요.");
-      continue;
+      next(); continue;
     }
-    if ((r.status === 503 || r.status === 429) && !last) { console.error("gemini", r.status, model); continue; }
+    if ((r.status === 503 || r.status === 429) && !last) { next(); continue; }
     if (r.status === 429) throw new ApiError(429, "AI 무료 사용량을 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 내일) 다시 시도해 주세요.");
     if (!r.ok) { console.error("gemini", r.status, model, await r.text()); throw new ApiError(502, `AI 평가 중 오류가 났습니다 (Gemini ${r.status}).`); }
-    const cand = data.candidates?.[0];
-    return (cand?.content?.parts ?? []).map(p => p.text ?? "").join("");
+    return text;
   }
+}
+
+async function readSse(body, onText) {
+  const dec = new TextDecoder();
+  let buf = "", text = "";
+  for await (const chunk of body) {
+    buf += dec.decode(chunk, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith("data:")) continue;
+      text += partsText(JSON.parse(line.slice(5)));
+      onText(text);
+    }
+  }
+  return text;
 }
 
 export async function planQueries(name, caseText) {

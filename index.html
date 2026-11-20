@@ -3,104 +3,176 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Climate Justice Indicator</title>
-<meta name="description" content="가시적으로 드러나지 않는 기후정의·기후부정의를 분배·절차·인정 9개 지표로 측정합니다.">
+<title>기후정의 지수 · Climate Justice Indicator</title>
+<meta name="description" content="정의로운 전환 정책을 분배·절차·인정 9개 지표로 채점한 기후정의 지수.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f7f6f2; --card: #ffffff; --ink: #1d1f1e; --muted: #5d6360; --line: #dcdad3;
-    --accent: #1f5f4a; --accent-ink: #ffffff;
-    --good: #2e7d4f; --mid: #b7791f; --bad: #b4412f; --na: #8a8f8c;
+    --paper: #fbfaf7; --ink: #151515; --sub: #5d5b56; --rule: #d6d3cb; --hair: #eceae4;
+    --good: #2f6b4f; --mid: #a8721a; --bad: #a33a2a; --na: #9a978f;
+    --serif: "Noto Serif KR", Georgia, serif;
+    --sans: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #141716; --card: #1c201f; --ink: #e8ebe9; --muted: #a2aaa6; --line: #333a37;
-      --accent: #5fb592; --accent-ink: #0d1411; --good: #5fb592; --mid: #e0a64a; --bad: #e57a66; --na: #8a928e; }
+    :root { --paper: #131312; --ink: #ebe9e4; --sub: #a6a39c; --rule: #3a3833; --hair: #23221f;
+      --good: #74b192; --mid: #d8a64c; --bad: #e07e68; --na: #7a776f; }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; }
-  .wrap { max-width: 64rem; margin: 0 auto; padding: 0 16px; }
-  header { border-bottom: 1px solid var(--line); padding: 2.5rem 0 2rem; }
-  h1 { margin: 0; font: 700 clamp(1.8rem, 5vw, 2.6rem)/1.15 Georgia, "Times New Roman", serif; letter-spacing: -0.01em; }
-  .lede { color: var(--muted); margin: .6rem 0 0; max-width: 42rem; }
-  h2 { font: 700 1.3rem/1.3 Georgia, serif; margin: 2.5rem 0 1rem; }
-  section > p.hint { color: var(--muted); margin-top: -.5rem; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; }
-  label { display: block; font-weight: 600; margin-bottom: .35rem; }
-  input, textarea { width: 100%; font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .75rem; }
-  textarea { min-height: 5rem; resize: vertical; }
-  .field + .field { margin-top: 1rem; }
-  button { font: inherit; font-weight: 600; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: .65rem 1.4rem; cursor: pointer; margin-top: 1rem; }
-  button:disabled { opacity: .55; cursor: wait; }
-  .status { margin-top: .75rem; color: var(--muted); min-height: 1.6em; }
-  .status.err { color: var(--bad); }
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-  th, td { padding: .7rem .8rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th { font-size: .8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
-  tbody tr { cursor: pointer; }
-  tbody tr:hover, tbody tr.sel { background: color-mix(in srgb, var(--accent) 8%, transparent); }
-  td.name { white-space: normal; font-weight: 600; min-width: 12rem; }
-  td.name small { display: block; font-weight: 400; color: var(--muted); }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.7 var(--sans); word-break: keep-all; overflow-wrap: break-word; }
+  a { color: inherit; text-underline-offset: 2px; text-decoration-color: var(--rule); }
+  a:hover { text-decoration-color: currentColor; }
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 0 16px; }
   .num { font-variant-numeric: tabular-nums; }
-  .idx { display: flex; align-items: center; gap: .6rem; }
-  .bar { width: 6rem; height: .5rem; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .sub { color: var(--sub); }
+
+  /* 머리 */
+  .topline { border-bottom: 1px solid var(--ink); font-size: .78rem; color: var(--sub); }
+  .topline .wrap { display: flex; justify-content: space-between; gap: 1rem; padding-top: .5rem; padding-bottom: .5rem; }
+  header { border-bottom: 3px double var(--ink); padding: 2.2rem 0 1.6rem; }
+  h1 { margin: 0; font: 700 clamp(2rem, 6vw, 3.1rem)/1.1 var(--serif); letter-spacing: -.02em; }
+  .en { margin: .35rem 0 0; font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--sub); }
+  .dek { margin: 1rem 0 0; max-width: 44rem; font-size: 1.02rem; }
+
+  h2 { font: 700 1.25rem/1.3 var(--serif); margin: 0; }
+  section { padding: 2rem 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: 0; }
+  .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: .3rem 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .sec-head p { margin: 0; font-size: .88rem; color: var(--sub); }
+
+  /* 측정 입력 */
+  .row { display: flex; }
+  input, textarea { font: inherit; color: inherit; background: transparent; border: 1px solid var(--ink); border-radius: 0; padding: .6rem .75rem; width: 100%; min-width: 0; }
+  input:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: -2px; }
+  textarea { min-height: 4.5rem; resize: vertical; margin-top: .5rem; }
+  button { font: 600 .95rem var(--sans); background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 0; padding: 0 1.4rem; cursor: pointer; white-space: nowrap; }
+  button:disabled { opacity: .5; cursor: wait; }
+  details.more { margin-top: .6rem; font-size: .88rem; }
+  details.more summary { cursor: pointer; color: var(--sub); }
+  .err { margin-top: .8rem; color: var(--bad); }
+
+  /* 진행 단계 */
+  .steps { list-style: none; margin: 1.2rem 0 0; padding: 0; border-top: 1px solid var(--ink); }
+  .steps li { display: grid; grid-template-columns: 1.8rem 8.5rem 1fr; gap: .2rem .8rem; padding: .6rem 0; border-bottom: 1px solid var(--hair); color: var(--sub); }
+  .steps li .no { font: 700 .95rem var(--serif); white-space: nowrap; }
+  .steps li b { font-weight: 600; }
+  .steps li .msg { font-size: .9rem; min-width: 0; overflow-wrap: anywhere; }
+  .steps li.now, .steps li.done { color: var(--ink); }
+  .steps li.done .no::after { content: "✓"; margin-left: .2rem; font: .8rem var(--sans); }
+  .steps li.now b::after { content: ""; display: inline-block; width: .45rem; height: .45rem; margin-left: .45rem; background: var(--ink); vertical-align: middle; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .steps li.now b::after { animation: none; } }
+  .ticks { grid-column: 3; display: flex; gap: 1rem; flex-wrap: wrap; margin-top: .3rem; font-size: .78rem; }
+  .ticks span { display: inline-flex; align-items: center; gap: 3px; }
+  .ticks i { width: .8rem; height: .8rem; border: 1px solid var(--sub); display: inline-block; }
+  .ticks i.on { background: var(--ink); border-color: var(--ink); }
+  .clock { margin: .5rem 0 0; font-size: .85rem; color: var(--sub); }
+
+  /* 표 */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { font: 600 .78rem var(--sans); color: var(--sub); text-align: left; padding: .55rem .7rem; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink); white-space: nowrap; }
+  th.r, td.r { text-align: right; }
+  td { padding: .75rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; white-space: nowrap; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover, tbody tr.sel { background: var(--hair); }
+  tbody tr:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+  td.name { white-space: normal; min-width: 13rem; }
+  td.name b { font-weight: 600; }
+  td.name small { display: block; color: var(--sub); font-size: .82rem; }
+  .idx { display: grid; grid-template-columns: 2.4rem 5.5rem auto; align-items: center; gap: .7rem; }
+  .idx strong { font: 700 1.15rem var(--serif); text-align: right; }
+  .bar { height: 4px; background: var(--hair); }
   .bar i { display: block; height: 100%; }
-  .badge { display: inline-block; font-size: .78rem; font-weight: 600; padding: .1rem .55rem; border-radius: 99px; color: #fff; }
-  .good { background: var(--good); } .mid { background: var(--mid); } .bad { background: var(--bad); } .na { background: var(--na); }
-  .tag { font-size: .75rem; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: .05rem .5rem; }
-  #detail { margin-top: 1.25rem; }
-  .detail-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; align-items: flex-start; }
-  .detail-head h3 { margin: 0; font: 700 1.25rem/1.3 Georgia, serif; }
-  .big { font: 700 2.4rem/1 Georgia, serif; text-align: right; }
-  .axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; margin-top: 1.25rem; }
-  .axis h4 { margin: 0 0 .5rem; display: flex; justify-content: space-between; }
-  .ind { border-top: 1px solid var(--line); padding: .6rem 0; }
-  .ind-top { display: flex; justify-content: space-between; gap: .5rem; font-weight: 600; }
-  .score { font-variant-numeric: tabular-nums; flex: none; }
-  .ind p { margin: .25rem 0 0; color: var(--muted); font-size: .92rem; }
-  .ind ul { margin: .25rem 0 0; padding-left: 1.1rem; font-size: .85rem; }
-  .ind a { color: var(--accent); word-break: break-all; }
-  .note { margin-top: 1rem; padding: .8rem 1rem; border-left: 3px solid var(--accent); background: var(--bg); }
-  dl.levels { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; margin: 0; }
-  dl.levels dt { font-weight: 700; }
-  dl.levels dd { margin: 0; color: var(--muted); }
-  .method { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
-  .method ol { margin: .25rem 0 0; padding-left: 1.2rem; }
-  footer { margin: 3rem 0 0; padding: 1.5rem 0 2.5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
-  footer p { margin: .35rem 0; }
+  .grade { font-size: .85rem; font-weight: 500; }
+  .grade::before { content: ""; display: inline-block; width: .55rem; height: .55rem; margin-right: .4rem; background: currentColor; }
+  .t-good { color: var(--good); } .t-mid { color: var(--mid); } .t-bad { color: var(--bad); } .t-na { color: var(--na); }
+  .b-good { background: var(--good); } .b-mid { background: var(--mid); } .b-bad { background: var(--bad); } .b-na { background: var(--na); }
+  .src { font-size: .78rem; letter-spacing: .08em; color: var(--sub); }
+
+  /* 상세 */
+  #detail:not(:empty) { margin-top: 2rem; border-top: 2px solid var(--ink); padding-top: 1.2rem; }
+  .d-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem 2rem; }
+  .d-head h3 { margin: 0; font: 700 1.5rem/1.3 var(--serif); }
+  .d-head .meta { font-size: .88rem; color: var(--sub); margin-top: .2rem; }
+  .d-score { text-align: right; }
+  .d-score strong { display: block; font: 700 3rem/1 var(--serif); }
+  .axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 0 2rem; margin-top: 1.4rem; }
+  .axis h4 { margin: 0; padding: .4rem 0; display: flex; justify-content: space-between; border-bottom: 1px solid var(--ink); font: 700 1rem var(--serif); }
+  .ind { padding: .65rem 0; border-bottom: 1px solid var(--hair); }
+  .ind-top { display: flex; justify-content: space-between; gap: .8rem; font-weight: 500; }
+  .pt { flex: none; font: 700 1rem var(--serif); }
+  .pt small { font: 400 .78rem var(--sans); color: var(--sub); }
+  .pt.na { font: 500 .82rem var(--sans); color: var(--sub); }
+  .ind p { margin: .3rem 0 0; color: var(--sub); font-size: .9rem; }
+  .ind ul { margin: .3rem 0 0; padding-left: 1rem; font-size: .82rem; }
+  .ind li { overflow-wrap: anywhere; }
+  .memo { margin-top: 1.4rem; padding: .2rem 0 .2rem 1rem; border-left: 2px solid var(--ink); }
+  .memo b { display: block; font-size: .8rem; color: var(--sub); }
+  details.refs { margin-top: 1.2rem; font-size: .88rem; }
+  details.refs summary { cursor: pointer; }
+  details.refs li { overflow-wrap: anywhere; }
+
+  /* 방법 */
+  .method { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.5rem 2rem; }
+  .method h3 { margin: 0 0 .3rem; font: 700 1rem var(--serif); border-bottom: 1px solid var(--ink); padding-bottom: .3rem; }
+  .method h3 span { font: 400 .78rem var(--sans); color: var(--sub); margin-left: .4rem; letter-spacing: .05em; }
+  .method ol { margin: .4rem 0 0; padding-left: 1.2rem; }
+  dl.levels { display: grid; grid-template-columns: 3rem 1fr; gap: .3rem 1rem; margin: 1.6rem 0 0; }
+  dl.levels dt { font: 700 1rem var(--serif); }
+  dl.levels dd { margin: 0; }
+  .rules { margin: 1.2rem 0 0; font-size: .9rem; color: var(--sub); max-width: 48rem; }
+
+  footer { border-top: 1px solid var(--ink); padding: 1.4rem 0 2.6rem; color: var(--sub); font-size: .84rem; }
+  footer p { margin: .3rem 0; max-width: 52rem; }
+
+  @media (max-width: 560px) {
+    .steps li { grid-template-columns: 1.8rem 1fr; }
+    .steps li .msg, .ticks { grid-column: 2; }
+    .row button { padding: 0 1rem; }
+  }
 </style>
 </head>
 <body>
+<div class="topline"><div class="wrap"><span>「기후위기와 기후정의」 조별 프로젝트</span><span>2026</span></div></div>
 <header>
   <div class="wrap">
-    <h1>Climate Justice Indicator</h1>
-    <p class="lede">수치로 잘 드러나지 않는 기후정의와 기후부정의를 측정합니다. 정의로운 전환 정책 사례를 분배·절차·인정 세 축, 9개 지표로 0~3점 채점하고 0~100 지수로 보여줍니다.</p>
+    <h1>기후정의 지수</h1>
+    <p class="en">Climate Justice Indicator</p>
+    <p class="dek">정의로운 전환 정책이 비용과 혜택을 어떻게 나누는지(분배), 누구를 결정에 참여시키는지(절차), 누구를 지원 대상으로 인정하는지(인정)를 9개 지표로 채점해 0~100 지수로 나타낸다.</p>
   </div>
 </header>
 
 <main class="wrap">
   <section>
-    <h2>새 사례 측정</h2>
-    <p class="hint">사례를 입력하면 AI가 공개자료를 웹에서 조사해 9개 지표를 채점합니다. 1~2분 걸립니다.</p>
-    <form id="form" class="card">
-      <div class="field">
-        <label for="name">사례 이름</label>
+    <div class="sec-head"><h2>사례 측정</h2><p>정책 이름을 넣으면 공개 문서를 검색해 9개 지표를 채점한다. 1~2분 걸린다.</p></div>
+    <form id="form">
+      <label for="name" class="sub" style="font-size:.85rem">사례 이름</label>
+      <div class="row">
         <input id="name" maxlength="200" required placeholder="예: 독일 루사티아 석탄 지역 구조전환법">
+        <button id="go" type="submit">측정</button>
       </div>
-      <div class="field">
-        <label for="context">추가 설명 (선택)</label>
-        <textarea id="context" maxlength="2000" placeholder="평가 기간, 관심 있는 집단, 참고할 문서 등"></textarea>
-      </div>
-      <button id="go" type="submit">측정하기</button>
-      <div id="status" class="status" role="status"></div>
+      <details class="more"><summary>추가 설명 (선택)</summary>
+        <textarea id="context" maxlength="2000" aria-label="추가 설명" placeholder="평가 기간, 관심 있는 집단, 참고할 문서 등"></textarea>
+      </details>
     </form>
+    <div id="progress" hidden>
+      <ol class="steps">
+        <li data-step="plan"><span class="no">1</span><b>검색어 정하기</b><span class="msg"></span></li>
+        <li data-step="search"><span class="no">2</span><b>공개 문서 검색</b><span class="msg"></span></li>
+        <li data-step="score"><span class="no">3</span><b>지표 채점</b><span class="msg"></span><div class="ticks" id="ticks"></div></li>
+      </ol>
+      <p class="clock" id="clock" role="status"></p>
+    </div>
+    <p class="err" id="err" role="alert" hidden></p>
   </section>
 
   <section>
-    <h2>사례별 기후정의 지수</h2>
-    <p class="hint">행을 누르면 지표별 점수와 근거가 열립니다.</p>
+    <div class="sec-head"><h2>사례별 지수</h2><p>행을 누르면 지표별 점수와 근거를 볼 수 있다.</p></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>사례</th><th>분배</th><th>절차</th><th>인정</th><th>종합 지수</th><th>채점</th></tr></thead>
+        <thead><tr><th>사례</th><th class="r">분배</th><th class="r">절차</th><th class="r">인정</th><th>종합 지수</th><th>채점</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
@@ -108,32 +180,29 @@
   </section>
 
   <section>
-    <h2>측정 방법</h2>
+    <div class="sec-head"><h2>측정 방법</h2></div>
     <div class="method" id="method"></div>
-    <div class="card" style="margin-top:1rem">
-      <strong>공통 채점 기준</strong>
-      <dl class="levels" id="levels" style="margin-top:.5rem"></dl>
-      <p style="margin:.8rem 0 0;color:var(--muted)">
-        <b>자료 부족</b>은 자료를 찾지 못했거나 아직 평가할 시기가 아닌 경우이고, 0점으로 치지 않습니다.
-        <b>해당 없음</b>은 제도 구조상 대상이 없는 경우입니다. 둘 다 지수 계산에서 뺍니다.
-        지수 = 채점된 지표 점수 합 ÷ (채점된 지표 수 × 3) × 100.
-        등급(임시안): 67 이상 정의 실현, 34~66 부분적 정의, 33 이하 부정의.
-      </p>
-    </div>
+    <dl class="levels" id="levels"></dl>
+    <p class="rules">
+      자료를 찾지 못했거나 아직 평가할 시기가 아니면 <b>자료 부족</b>, 제도 구조상 대상이 없으면 <b>해당 없음</b>으로 두고 둘 다 지수 계산에서 뺀다.
+      지수 = 채점된 지표 점수 합 ÷ (채점된 지표 수 × 3) × 100.
+      등급(임시안): 67 이상 정의 실현, 34~66 부분적 정의, 33 이하 부정의.
+    </p>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <p><b>가정과 한계.</b> 지표와 채점 규칙은 인하대학교 「기후위기와 기후정의」 조별 프로젝트가 만든 제안이며 검증된 척도가 아닙니다.</p>
-    <p>팀 시범 채점은 2026년 11월까지의 공개자료 기준 잠정값입니다. AI 채점은 Tavily로 웹 문서를 검색한 뒤 Google Gemini가 그 문서만 근거로 채점한 결과입니다. 검색 결과의 일부 내용만 읽으므로 틀릴 수 있으니, 반드시 근거 링크를 확인하세요. 입력한 사례 내용은 Tavily와 Google로 전송됩니다.</p>
-    <p>사례마다 채점된 지표 수가 달라 종합 지수를 직접 비교하기보다 지표별 점수를 함께 보세요.</p>
+    <p><b>가정과 한계.</b> 지표와 채점 규칙은 인하대학교 「기후위기와 기후정의」 조별 프로젝트의 제안이며 검증된 척도가 아니다.</p>
+    <p>팀 시범 채점은 2026년 11월까지의 공개자료 기준 잠정값이다. AI 채점은 Tavily로 찾은 웹 문서의 일부만 읽고 Google Gemini가 매긴 점수라 틀릴 수 있고, 같은 사례도 측정할 때마다 조금씩 달라질 수 있다. 근거 링크를 직접 확인할 것. 입력한 사례 내용은 Tavily와 Google로 전송된다.</p>
+    <p>사례마다 채점된 지표 수가 달라 종합 지수만으로 비교하기보다 지표별 점수를 함께 봐야 한다.</p>
   </div>
 </footer>
 
 <script type="module">
 import { AXES, ALL, LEVELS, CASES, index, grade } from "./indicators.js";
 
+const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const KEY = "cji-ai-cases";
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) ?? []; } catch { return []; } };
@@ -142,94 +211,145 @@ const save = list => { try { localStorage.setItem(KEY, JSON.stringify(list)); } 
 let cases = [...load(), ...CASES];
 let selected = null;
 
-const scoreText = v => v === "N" ? "자료 부족" : v === "X" ? "해당 없음" : `${v} / 3`;
+const short = a => a.name.split(/적? |의 /)[0];  // 분배적 정의 → 분배, 인정의 정의 → 인정
 const axisIdx = (c, a) => index(c.s, a.indicators.map(i => i.id));
-const tone = idx => grade(idx).tone;
 const cell = idx => idx === null ? "—" : idx;
+const point = v => typeof v === "number"
+  ? `<span class="pt t-${grade(Math.round(v / 3 * 100)).tone}">${v}<small> / 3</small></span>`
+  : `<span class="pt na">${v === "X" ? "해당 없음" : "자료 부족"}</span>`;
 
 function renderRows() {
-  document.getElementById("rows").innerHTML = cases.map((c, n) => {
+  $("rows").innerHTML = cases.map((c, n) => {
     const idx = index(c.s), g = grade(idx);
     return `<tr data-n="${n}" class="${n === selected ? "sel" : ""}" tabindex="0">
-      <td class="name">${esc(c.name)}<small>${esc(c.region)}</small></td>
-      ${AXES.map(a => `<td class="num">${cell(axisIdx(c, a))}</td>`).join("")}
-      <td><div class="idx"><b class="num">${cell(idx)}</b>
-        <span class="bar"><i class="${g.tone}" style="width:${idx ?? 0}%"></i></span>
-        <span class="badge ${g.tone}">${g.label}</span></div></td>
-      <td><span class="tag">${c.source === "ai" ? "AI 조사" : "팀 시범"}</span></td>
+      <td class="name"><b>${esc(c.name)}</b><small>${esc(c.region)}</small></td>
+      ${AXES.map(a => `<td class="r num">${cell(axisIdx(c, a))}</td>`).join("")}
+      <td><div class="idx"><strong class="num">${cell(idx)}</strong>
+        <span class="bar"><i class="b-${g.tone}" style="width:${idx ?? 0}%"></i></span>
+        <span class="grade t-${g.tone}">${g.label}</span></div></td>
+      <td><span class="src">${c.source === "ai" ? "AI" : "팀"}</span></td>
     </tr>`;
   }).join("");
 }
 
 function renderDetail() {
-  const el = document.getElementById("detail");
   const c = cases[selected];
-  if (!c) { el.innerHTML = ""; return; }
+  if (!c) { $("detail").innerHTML = ""; return; }
   const idx = index(c.s), g = grade(idx);
-  el.innerHTML = `<div class="card">
-    <div class="detail-head">
+  $("detail").innerHTML = `
+    <div class="d-head">
       <div>
         <h3>${esc(c.name)}</h3>
-        <div style="color:var(--muted)">${esc(c.region)}${c.scope ? " · " + esc(c.scope) : ""}</div>
+        <div class="meta">${esc(c.region)}${c.scope ? " · " + esc(c.scope) : ""}</div>
+        <div class="meta">${c.source === "team" ? "팀 시범 채점 · 2026년 11월 공개자료 기준 잠정값" : `AI 조사 · 자료 신뢰도 ${esc(c.confidence)} · ${esc(c.date)}`}</div>
       </div>
-      <div><div class="big num">${cell(idx)}</div><span class="badge ${g.tone}">${g.label}</span></div>
+      <div class="d-score"><strong class="num">${cell(idx)}</strong><span class="grade t-${g.tone}">${g.label}</span></div>
     </div>
-    ${c.summary ? `<p>${esc(c.summary)}</p>` : ""}
-    ${c.source === "team" ? `<p style="color:var(--muted)">팀 시범 채점(2026년 11월, 공개자료 기준 잠정값). 지표별 근거는 분배·절차·인정 지표 연구 보고서에 있습니다.</p>` : `<p style="color:var(--muted)">AI 조사 · 자료 신뢰도 ${esc(c.confidence)} · ${esc(c.date)}</p>`}
+    ${c.summary ? `<p style="max-width:48rem">${esc(c.summary)}</p>` : ""}
     <div class="axes">${AXES.map(a => `<div class="axis">
       <h4><span>${a.name}</span><span class="num">${cell(axisIdx(c, a))}</span></h4>
       ${a.indicators.map(i => {
-        const v = c.s[i.id], d = c.detail?.[i.id];
+        const d = c.detail?.[i.id];
         return `<div class="ind">
-          <div class="ind-top"><span>${i.name}</span><span class="score badge ${typeof v === "number" ? tone(Math.round(v / 3 * 100)) : "na"}">${scoreText(v)}</span></div>
+          <div class="ind-top"><span>${i.name}</span>${point(c.s[i.id])}</div>
           ${d?.reason ? `<p>${esc(d.reason)}</p>` : ""}
           ${d?.sources?.length ? `<ul>${d.sources.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul>` : ""}
         </div>`;
       }).join("")}
     </div>`).join("")}</div>
-    ${c.note ? `<div class="note">${esc(c.note)}</div>` : ""}
-    ${c.refs?.length ? `<details style="margin-top:1rem"><summary>AI가 실제로 검색한 문서 ${c.refs.length}건</summary>
-      ${c.queries?.length ? `<p style="font-size:.85rem;color:var(--muted)">검색어: ${c.queries.map(esc).join(" · ")}</p>` : ""}
-      <ul style="font-size:.85rem">${c.refs.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${esc(s.title)}</a></li>`).join("")}</ul></details>` : ""}
-  </div>`;
+    ${c.note ? `<div class="memo"><b>평가 메모</b>${esc(c.note)}</div>` : ""}
+    ${c.refs?.length ? `<details class="refs"><summary>검색한 문서 ${c.refs.length}건</summary>
+      ${c.queries?.length ? `<p class="sub">검색어: ${c.queries.map(esc).join(" · ")}</p>` : ""}
+      <ol>${c.refs.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ol></details>` : ""}`;
 }
 
-function select(n) { selected = n; renderRows(); renderDetail(); document.getElementById("detail").scrollIntoView({ behavior: "smooth", block: "start" }); }
+function select(n) { selected = n; renderRows(); renderDetail(); $("detail").scrollIntoView({ behavior: "smooth", block: "start" }); }
 
-document.getElementById("rows").addEventListener("click", e => { const tr = e.target.closest("tr"); if (tr) select(+tr.dataset.n); });
-document.getElementById("rows").addEventListener("keydown", e => { const tr = e.target.closest("tr"); if (tr && e.key === "Enter") select(+tr.dataset.n); });
+$("rows").addEventListener("click", e => { const tr = e.target.closest("tr"); if (tr) select(+tr.dataset.n); });
+$("rows").addEventListener("keydown", e => { const tr = e.target.closest("tr"); if (tr && e.key === "Enter") select(+tr.dataset.n); });
 
-document.getElementById("method").innerHTML = AXES.map(a => `<div class="card">
-  <strong>${a.name}</strong> <span style="color:var(--muted)">${a.en}</span>
+$("method").innerHTML = AXES.map(a => `<div>
+  <h3>${a.name}<span>${a.en}</span></h3>
   <ol>${a.indicators.map(i => `<li>${i.name}</li>`).join("")}</ol></div>`).join("");
-document.getElementById("levels").innerHTML = Object.entries(LEVELS).map(([k, v]) => `<dt>${k}점</dt><dd>${v}</dd>`).join("");
+$("levels").innerHTML = Object.entries(LEVELS).map(([k, v]) => `<dt>${k}점</dt><dd>${v}</dd>`).join("");
 
-document.getElementById("form").addEventListener("submit", async e => {
+// 진행 단계: 서버가 보내는 {step} 줄에 맞춰 갱신한다. 꾸며낸 진행률은 쓰지 않는다.
+function stepState(s, state, msg) {
+  const li = document.querySelector(`.steps li[data-step="${s}"]`);
+  li.className = state;
+  if (msg !== undefined) li.querySelector(".msg").textContent = msg;
+}
+function resetProgress() {
+  for (const s of ["plan", "search", "score"]) stepState(s, "", "");
+  $("ticks").innerHTML = AXES.map(a => `<span>${short(a)} ${a.indicators.map(i => `<i data-id="${i.id}" title="${i.name}"></i>`).join("")}</span>`).join("");
+  $("progress").hidden = false; $("err").hidden = true;
+}
+let docCount = 0;
+function onStep(m) {
+  if (m.step === "plan") stepState("plan", "now", "사례에 맞는 검색어를 만드는 중");
+  if (m.step === "search") { stepState("plan", "done", m.queries.join(" · ")); stepState("search", "now", `검색어 ${m.queries.length}개로 찾는 중`); }
+  if (m.step === "read") { docCount = m.n; stepState("search", "done", `관련 문서 ${m.n}건`); stepState("score", "now", `문서 ${m.n}건을 읽는 중`); }
+  if (m.step === "axis") {
+    const a = AXES.find(a => a.indicators.some(i => i.id === m.id)), ind = ALL.find(i => i.id === m.id);
+    document.querySelector(`.ticks i[data-id="${m.id}"]`)?.classList.add("on");
+    stepState("score", "now", `${short(a)} · ${ind.name}`);
+  }
+  if (m.step === "retry") {
+    document.querySelectorAll(".ticks i").forEach(i => i.classList.remove("on"));
+    stepState("score", "now", `응답이 늦어 다른 모델(${m.model})로 다시 채점하는 중`);
+  }
+}
+
+async function measure(name, context) {
+  const r = await fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, context }) });
+  if (!r.ok || !r.body) {
+    const d = await r.json().catch(() => ({}));
+    throw new Error(d.error || `서버 오류 (${r.status})`);
+  }
+  const reader = r.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += value;
+    const lines = buf.split("\n");
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const m = JSON.parse(line);
+      if (m.error) throw new Error(m.error);
+      if (m.result) return m.result;
+      onStep(m);
+    }
+  }
+  throw new Error("응답이 중간에 끊겼습니다. 다시 시도해 주세요.");
+}
+
+$("form").addEventListener("submit", async e => {
   e.preventDefault();
-  const btn = document.getElementById("go"), status = document.getElementById("status");
-  const name = document.getElementById("name").value.trim();
-  const context = document.getElementById("context").value.trim();
+  const name = $("name").value.trim(), context = $("context").value.trim();
   if (!name) return;
-  btn.disabled = true; status.className = "status";
+  $("go").disabled = true;
+  resetProgress();
   const t0 = Date.now();
-  const tick = setInterval(() => { status.textContent = `공개자료 조사 중… ${Math.round((Date.now() - t0) / 1000)}초`; }, 1000);
+  const tick = () => { $("clock").textContent = `경과 ${Math.round((Date.now() - t0) / 1000)}초`; };
+  tick();
+  const timer = setInterval(tick, 1000);
   try {
-    const r = await fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, context }) });
-    const data = await r.json().catch(() => ({ error: `서버 응답 오류 (${r.status})` }));
-    if (!r.ok) throw new Error(data.error || `오류 (${r.status})`);
+    const data = await measure(name, context);
+    stepState("score", "done", `9개 지표 채점 완료 (문서 ${docCount}건 근거)`);
     const c = { ...data.case, s: data.s, detail: data.detail, confidence: data.confidence, note: data.note, refs: data.refs, queries: data.queries,
       source: "ai", date: new Date().toLocaleDateString("ko-KR") };
     c.name ||= name;
-    const mine = [c, ...load()].slice(0, 20);
-    save(mine);
+    save([c, ...load()].slice(0, 20));
     cases = [c, ...cases];
-    status.textContent = "측정 완료";
     select(0);
   } catch (err) {
-    status.className = "status err";
-    status.textContent = err.message;
+    $("err").textContent = err.message;
+    $("err").hidden = false;
+    document.querySelector(".steps li.now")?.classList.remove("now");
   } finally {
-    clearInterval(tick); btn.disabled = false;
+    clearInterval(timer); tick(); $("go").disabled = false;
   }
 });
 
