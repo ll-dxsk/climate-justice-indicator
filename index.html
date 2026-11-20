@@ -51,6 +51,7 @@
   details.more { margin-top: .6rem; font-size: .88rem; }
   details.more summary { cursor: pointer; color: var(--sub); }
   .err { margin-top: .8rem; color: var(--bad); }
+  .err.warn { color: var(--mid); }
 
   /* 진행 단계 */
   .steps { list-style: none; margin: 1.2rem 0 0; padding: 0; border-top: 1px solid var(--ink); }
@@ -340,8 +341,16 @@ $("form").addEventListener("submit", async e => {
       source: "ai", date: new Date().toLocaleDateString("ko-KR") };
     c.name ||= name;
     cases = [c, ...CASES];
+    // 근거가 거의 없으면 대개 사례 이름이 모호해서 엉뚱한 문서가 검색된 경우다.
+    const scored = ALL.filter(i => typeof c.s[i.id] === "number").length;
+    if (scored <= 2) {
+      $("err").className = "err warn";
+      $("err").textContent = `근거 문서로 채점된 지표가 9개 중 ${scored}개뿐입니다. 사례 이름을 국가·정책명까지 구체적으로 적어 다시 측정해 보세요.`;
+      $("err").hidden = false;
+    }
     select(0);
   } catch (err) {
+    $("err").className = "err";
     $("err").textContent = err.message;
     $("err").hidden = false;
     document.querySelector(".steps li.now")?.classList.remove("now");
