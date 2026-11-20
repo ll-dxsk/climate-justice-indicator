@@ -5,14 +5,20 @@ import { AXES, ALL, LEVELS } from "../indicators.js";
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 const GEMINI = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
-// 측정 1건 = 검색 4회. ponytail: 고정 키워드, 결과가 얇으면 지표별 검색으로 늘린다.
-const QUERIES = [
+// 측정 1건 = 검색 4회. 검색어는 Gemini가 공식 정책명(영어·현지어)으로 만들고, 실패하면 고정 키워드를 쓴다.
+const FALLBACK = [
   "",
   "just transition fund budget subsidy workers support energy poverty",
   "stakeholder consultation transparency independent monitoring evaluation report",
   "vulnerable groups women indigenous informal workers community dependence",
 ];
 const DOC_CHARS = 3000;
+
+const PLANNER = `기후정의 평가를 위해 사례를 조사할 웹 검색어 4개를 만든다.
+- 사례의 공식 정책·법령·계획 이름을 영어로 쓰고, 현지 언어 공식 명칭이 있으면 함께 쓴다. 한국 사례는 한국어로 쓴다.
+- 4개는 각각 다음을 겨냥한다: 1) 정책 개요·법령 원문, 2) 재원·보조금·노동자 지원·에너지 부담, 3) 이해관계자 참여·정보 공개·독립 평가 보고서, 4) 취약집단·지역 의존도·전환 이후 추적.
+- 검색어마다 12단어 이내.
+JSON 하나만 출력한다: {"queries": ["...", "...", "...", "..."]}`;
 
 const rubric = AXES.map(a =>
   `## ${a.name}\n` + a.indicators.map(i => `- ${i.id} ${i.name}: ${i.rule}`).join("\n")
@@ -63,24 +69,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const docs = await searchAll(name);
+    const caseText = `평가할 사례: ${name}` + (context ? `\n추가 설명: ${context}` : "");
+    const docs = await searchAll(await planQueries(name, caseText));
     if (!docs.length) return res.status(404).json({ error: "이 사례로 검색된 문서가 없습니다. 사례 이름을 더 구체적으로(영문 정책명 등) 적어 보세요." });
 
     const list = docs.map((d, i) => `[${i + 1}] ${d.title}\nURL: ${d.url}\n${d.text}`).join("\n\n---\n\n");
-    const r = await fetch(GEMINI, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM }] },
-        contents: [{ role: "user", parts: [{ text:
-          `평가할 사례: ${name}` + (context ? `\n추가 설명: ${context}` : "") + `\n\n# 검색된 문서 (${docs.length}건)\n\n${list}` }] }],
-      }),
-    });
-    if (r.status === 429) throw new ApiError(429, "AI 무료 사용량을 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 내일) 다시 시도해 주세요.");
-    if (!r.ok) { console.error("gemini", r.status, await r.text()); throw new ApiError(502, `AI 평가 중 오류가 났습니다 (Gemini ${r.status}).`); }
-
-    const cand = (await r.json()).candidates?.[0];
-    const text = (cand?.content?.parts ?? []).map(p => p.text ?? "").join("");
+    const text = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`);
     const out = clean(parseJson(text), new Set(docs.map(d => d.url)));
     out.refs = docs.map(({ title, url }) => ({ title, url }));
     return res.status(200).json(out);
@@ -93,8 +87,35 @@ export default async function handler(req, res) {
   }
 }
 
-async function searchAll(name) {
-  const results = await Promise.all(QUERIES.map(q => tavily(`${name} ${q}`.trim())));
+async function gemini(system, user) {
+  const r = await fetch(GEMINI, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+    }),
+  });
+  if (r.status === 429) throw new ApiError(429, "AI 무료 사용량을 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 내일) 다시 시도해 주세요.");
+  if (!r.ok) { console.error("gemini", r.status, await r.text()); throw new ApiError(502, `AI 평가 중 오류가 났습니다 (Gemini ${r.status}).`); }
+  const cand = (await r.json()).candidates?.[0];
+  return (cand?.content?.parts ?? []).map(p => p.text ?? "").join("");
+}
+
+export async function planQueries(name, caseText) {
+  try {
+    const q = (parseJson(await gemini(PLANNER, caseText)).queries ?? [])
+      .map(s => String(s ?? "").trim()).filter(Boolean).slice(0, 4);
+    if (q.length) return q;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 429) throw err;
+    console.error("planner", err);
+  }
+  return FALLBACK.map(k => `${name} ${k}`.trim());
+}
+
+async function searchAll(queries) {
+  const results = await Promise.all(queries.map(q => tavily(q)));
   const seen = new Set();
   return results.flat().filter(d => /^https?:\/\//i.test(d.url) && !seen.has(d.url) && seen.add(d.url));
 }
