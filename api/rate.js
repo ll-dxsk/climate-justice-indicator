@@ -91,12 +91,12 @@ export default async function handler(req, res) {
 
     const list = docs.map((d, i) => `[${i + 1}] ${d.title}\nURL: ${d.url}\n${d.text}`).join("\n\n---\n\n");
     const seen = new Set();
-    const text = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`, RATE_MODELS, {
+    const rated = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`, RATE_MODELS, {
       // 모델이 쓰는 JSON에 지표 id가 나타날 때마다 "그 지표 채점 중"으로 알린다.
       onText: t => { for (const [, id] of t.matchAll(/"id"\s*:\s*"([dpr][1-3])"/g)) if (!seen.has(id)) { seen.add(id); send({ step: "axis", id }); } },
       onRetry: model => { seen.clear(); send({ step: "retry", model }); },
     });
-    const out = clean(parseJson(text), new Set(docs.map(d => d.url)));
+    const out = clean(rated, new Set(docs.map(d => d.url)));
     out.refs = docs.map(({ title, url, score }) => ({ title, url, score }));
     out.queries = queries;
     send({ result: out });
@@ -111,6 +111,7 @@ export default async function handler(req, res) {
 
 const partsText = d => (d?.candidates?.[0]?.content?.parts ?? []).map(p => p.text ?? "").join("");
 
+// JSON으로 답하게 하고, 파싱한 객체를 돌려준다. 503·429·시간 초과·깨진 JSON이면 다음 모델로.
 // hooks.onText가 있으면 스트리밍(SSE)으로 받아 지금까지 쓴 글 전체를 넘겨준다.
 async function gemini(system, user, models, hooks = {}) {
   for (const [i, [model, ms]] of models.entries()) {
@@ -125,6 +126,7 @@ async function gemini(system, user, models, hooks = {}) {
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: system }] },
           contents: [{ role: "user", parts: [{ text: user }] }],
+          generationConfig: { responseMimeType: "application/json" },
         }),
         signal: AbortSignal.timeout(ms),
       });
@@ -137,7 +139,11 @@ async function gemini(system, user, models, hooks = {}) {
     if ((r.status === 503 || r.status === 429) && !last) { next(); continue; }
     if (r.status === 429) throw new ApiError(429, "AI 무료 사용량을 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 내일) 다시 시도해 주세요.");
     if (!r.ok) { console.error("gemini", r.status, model, await r.text()); throw new ApiError(502, `AI 평가 중 오류가 났습니다 (Gemini ${r.status}).`); }
-    return text;
+    try { return parseJson(text); } catch (err) {
+      console.error("gemini bad json", model, text.slice(0, 200));
+      if (last) throw err;
+      next();
+    }
   }
 }
 
@@ -159,7 +165,7 @@ async function readSse(body, onText) {
 
 export async function planQueries(name, caseText) {
   try {
-    const q = (parseJson(await gemini(PLANNER, caseText, PLAN_MODELS)).queries ?? [])
+    const q = ((await gemini(PLANNER, caseText, PLAN_MODELS)).queries ?? [])
       .map(s => String(s ?? "").trim()).filter(Boolean).slice(0, 4);
     if (q.length) return q;
   } catch (err) {

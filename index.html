@@ -204,11 +204,9 @@ import { AXES, ALL, LEVELS, CASES, index, grade } from "./indicators.js";
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const KEY = "cji-ai-cases";
-const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) ?? []; } catch { return []; } };
-const save = list => { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {} };
-
-let cases = [...load(), ...CASES];
+// AI 측정 결과는 저장하지 않는다: 새 측정이 이전 결과를 대체하고, 새로고침하면 사라진다.
+try { localStorage.removeItem("cji-ai-cases"); } catch {}  // 예전 버전이 브라우저에 저장해 둔 결과 정리
+let cases = [...CASES];
 let selected = null;
 
 const short = a => a.name.split(/적? |의 /)[0];  // 분배적 정의 → 분배, 인정의 정의 → 인정
@@ -341,8 +339,7 @@ $("form").addEventListener("submit", async e => {
     const c = { ...data.case, s: data.s, detail: data.detail, confidence: data.confidence, note: data.note, refs: data.refs, queries: data.queries,
       source: "ai", date: new Date().toLocaleDateString("ko-KR") };
     c.name ||= name;
-    save([c, ...load()].slice(0, 20));
-    cases = [c, ...cases];
+    cases = [c, ...CASES];
     select(0);
   } catch (err) {
     $("err").textContent = err.message;
