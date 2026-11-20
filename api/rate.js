@@ -3,7 +3,11 @@ import { AXES, ALL, LEVELS } from "../indicators.js";
 // 1) Tavily로 웹 검색(무료 월 1,000크레딧, 1회 1크레딧) → 2) 무료 Gemini가 그 문서만 근거로 채점.
 // Gemini 무료 등급은 Google 검색 연동이 안 돼서 검색을 따로 한다.
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
-const GEMINI = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const LITE = "gemini-3.5-flash-lite";
+// [모델, 제한 ms]. 503·429·시간 초과면 다음 모델로. 합계(30+20+140+90초)는 Vercel 제한 300초 안.
+const PLAN_MODELS = [[LITE, 30000]];
+const RATE_MODELS = [[MODEL, 140000], [LITE, 90000]];
+const SEARCH_MS = 20000;
 
 // 측정 1건 = 검색 4회. 검색어는 Gemini가 공식 정책명(영어·현지어)으로 만들고, 실패하면 고정 키워드를 쓴다.
 const FALLBACK = [
@@ -79,7 +83,7 @@ export default async function handler(req, res) {
     if (!docs.length) return res.status(404).json({ error: "이 사례로 검색된 문서가 없습니다. 사례 이름을 더 구체적으로(영문 정책명 등) 적어 보세요." });
 
     const list = docs.map((d, i) => `[${i + 1}] ${d.title}\nURL: ${d.url}\n${d.text}`).join("\n\n---\n\n");
-    const text = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`);
+    const text = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`, RATE_MODELS);
     const out = clean(parseJson(text), new Set(docs.map(d => d.url)));
     out.refs = docs.map(({ title, url, score }) => ({ title, url, score }));
     out.queries = queries;
@@ -93,24 +97,38 @@ export default async function handler(req, res) {
   }
 }
 
-async function gemini(system, user) {
-  const r = await fetch(GEMINI, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: user }] }],
-    }),
-  });
-  if (r.status === 429) throw new ApiError(429, "AI 무료 사용량을 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 내일) 다시 시도해 주세요.");
-  if (!r.ok) { console.error("gemini", r.status, await r.text()); throw new ApiError(502, `AI 평가 중 오류가 났습니다 (Gemini ${r.status}).`); }
-  const cand = (await r.json()).candidates?.[0];
-  return (cand?.content?.parts ?? []).map(p => p.text ?? "").join("");
+async function gemini(system, user, models) {
+  for (const [i, [model, ms]] of models.entries()) {
+    const last = i === models.length - 1;
+    let r, data;
+    try {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents: [{ role: "user", parts: [{ text: user }] }],
+        }),
+        signal: AbortSignal.timeout(ms),
+      });
+      if (r.ok) data = await r.json();
+    } catch (err) {
+      if (err.name !== "TimeoutError") throw err;
+      console.error("gemini timeout", model);
+      if (last) throw new ApiError(504, "AI 응답이 너무 늦습니다. 잠시 후 다시 시도해 주세요.");
+      continue;
+    }
+    if ((r.status === 503 || r.status === 429) && !last) { console.error("gemini", r.status, model); continue; }
+    if (r.status === 429) throw new ApiError(429, "AI 무료 사용량을 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 내일) 다시 시도해 주세요.");
+    if (!r.ok) { console.error("gemini", r.status, model, await r.text()); throw new ApiError(502, `AI 평가 중 오류가 났습니다 (Gemini ${r.status}).`); }
+    const cand = data.candidates?.[0];
+    return (cand?.content?.parts ?? []).map(p => p.text ?? "").join("");
+  }
 }
 
 export async function planQueries(name, caseText) {
   try {
-    const q = (parseJson(await gemini(PLANNER, caseText)).queries ?? [])
+    const q = (parseJson(await gemini(PLANNER, caseText, PLAN_MODELS)).queries ?? [])
       .map(s => String(s ?? "").trim()).filter(Boolean).slice(0, 4);
     if (q.length) return q;
   } catch (err) {
@@ -134,6 +152,10 @@ async function tavily(query) {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.TAVILY_API_KEY}` },
     body: JSON.stringify({ query: query.slice(0, 400), search_depth: "basic", max_results: 5, include_raw_content: "text" }),
+    signal: AbortSignal.timeout(SEARCH_MS),
+  }).catch(err => {
+    if (err.name === "TimeoutError") throw new ApiError(504, "웹 검색이 너무 늦습니다. 잠시 후 다시 시도해 주세요.");
+    throw err;
   });
   if ([429, 432, 433].includes(r.status)) throw new ApiError(429, "이번 달 무료 검색 한도를 다 썼거나 요청이 몰렸습니다. 잠시 후(또는 다음 달) 다시 시도해 주세요.");
   if (!r.ok) { console.error("tavily", r.status, await r.text()); throw new ApiError(502, `웹 검색 중 오류가 났습니다 (Tavily ${r.status}).`); }
