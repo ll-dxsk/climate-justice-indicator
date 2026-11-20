@@ -13,10 +13,14 @@ const FALLBACK = [
   "vulnerable groups women indigenous informal workers community dependence",
 ];
 const DOC_CHARS = 3000;
+// Tavily 관련도(score, 0~1) 순으로 최대 MAX_DOCS건, MIN_SCORE 미만은 버리되 최소 MIN_DOCS건은 남긴다.
+// ponytail: 고정 임계값, 실제 점수 분포를 보고 조정한다.
+const MAX_DOCS = 12, MIN_DOCS = 5, MIN_SCORE = 0.3;
 
 const PLANNER = `기후정의 평가를 위해 사례를 조사할 웹 검색어 4개를 만든다.
 - 사례의 공식 정책·법령·계획 이름을 영어로 쓰고, 현지 언어 공식 명칭이 있으면 함께 쓴다. 한국 사례는 한국어로 쓴다.
 - 4개는 각각 다음을 겨냥한다: 1) 정책 개요·법령 원문, 2) 재원·보조금·노동자 지원·에너지 부담, 3) 이해관계자 참여·정보 공개·독립 평가 보고서, 4) 취약집단·지역 의존도·전환 이후 추적.
+- 모든 검색어에 정책명이나 지역명을 반드시 넣는다. "independent evaluation report"처럼 사례와 무관한 일반 문서가 걸리는 검색어는 쓰지 않는다.
 - 검색어마다 12단어 이내.
 JSON 하나만 출력한다: {"queries": ["...", "...", "...", "..."]}`;
 
@@ -70,13 +74,15 @@ export default async function handler(req, res) {
 
   try {
     const caseText = `평가할 사례: ${name}` + (context ? `\n추가 설명: ${context}` : "");
-    const docs = await searchAll(await planQueries(name, caseText));
+    const queries = await planQueries(name, caseText);
+    const docs = await searchAll(queries);
     if (!docs.length) return res.status(404).json({ error: "이 사례로 검색된 문서가 없습니다. 사례 이름을 더 구체적으로(영문 정책명 등) 적어 보세요." });
 
     const list = docs.map((d, i) => `[${i + 1}] ${d.title}\nURL: ${d.url}\n${d.text}`).join("\n\n---\n\n");
     const text = await gemini(SYSTEM, `${caseText}\n\n# 검색된 문서 (${docs.length}건)\n\n${list}`);
     const out = clean(parseJson(text), new Set(docs.map(d => d.url)));
-    out.refs = docs.map(({ title, url }) => ({ title, url }));
+    out.refs = docs.map(({ title, url, score }) => ({ title, url, score }));
+    out.queries = queries;
     return res.status(200).json(out);
   } catch (err) {
     console.error(err);
@@ -117,7 +123,10 @@ export async function planQueries(name, caseText) {
 async function searchAll(queries) {
   const results = await Promise.all(queries.map(q => tavily(q)));
   const seen = new Set();
-  return results.flat().filter(d => /^https?:\/\//i.test(d.url) && !seen.has(d.url) && seen.add(d.url));
+  const docs = results.flat()
+    .filter(d => /^https?:\/\//i.test(d.url) && !seen.has(d.url) && seen.add(d.url))
+    .sort((a, b) => b.score - a.score);
+  return docs.filter((d, i) => i < MIN_DOCS || d.score >= MIN_SCORE).slice(0, MAX_DOCS);
 }
 
 async function tavily(query) {
@@ -131,6 +140,7 @@ async function tavily(query) {
   return ((await r.json()).results ?? []).map(x => ({
     title: String(x.title || x.url).slice(0, 200),
     url: String(x.url ?? "").slice(0, 1000),
+    score: Number(x.score) || 0,
     text: String(x.raw_content || x.content || "").slice(0, DOC_CHARS),
   }));
 }
