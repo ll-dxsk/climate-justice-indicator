@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>기후정의 지수 · Climate Justice Indicator</title>
-<meta name="description" content="정의로운 전환 정책을 분배·절차·인정 9개 지표로 채점한 기후정의 지수입니다.">
+<title>기후정의 실현지수 · Climate Justice Realization Index</title>
+<meta name="description" content="정의로운 전환 정책을 분배·절차·인정 9개 지표로 채점한 기후정의 실현지수입니다.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
@@ -95,7 +95,6 @@
   .grade::before { content: ""; display: inline-block; width: .55rem; height: .55rem; margin-right: .4rem; background: currentColor; }
   .t-g1 { color: var(--g1); } .t-g2 { color: var(--g2); } .t-g3 { color: var(--g3); } .t-g4 { color: var(--g4); } .t-g5 { color: var(--g5); } .t-na { color: var(--na); }
   .b-g1 { background: var(--g1); } .b-g2 { background: var(--g2); } .b-g3 { background: var(--g3); } .b-g4 { background: var(--g4); } .b-g5 { background: var(--g5); } .b-na { background: var(--na); }
-  .src { font-size: .8rem; color: var(--sub); }
 
   /* 상세 */
   #detail:not(:empty) { margin-top: 2rem; border-top: 2px solid var(--ink); padding-top: 1.2rem; }
@@ -144,8 +143,8 @@
 <body>
 <header>
   <div class="wrap">
-    <h1>기후정의 지수</h1>
-    <p class="en">Climate Justice Indicator</p>
+    <h1>기후정의 실현지수</h1>
+    <p class="en">Climate Justice Realization Index</p>
     <p class="dek">정의로운 전환 정책이 비용과 혜택을 어떻게 나누는지(분배), 누구를 결정에 참여시키는지(절차), 누구를 지원 대상으로 인정하는지(인정)를 9개 지표로 채점해 0~100 지수로 나타냅니다.</p>
   </div>
 </header>
@@ -180,7 +179,7 @@
     <div class="sec-head"><h2>사례별 지수</h2><p>행을 누르면 지표별 점수와 근거를 볼 수 있습니다.</p></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>사례</th><th class="r">분배</th><th class="r">절차</th><th class="r">인정</th><th>종합 지수</th><th>채점</th></tr></thead>
+        <thead><tr><th>사례</th><th class="r">분배</th><th class="r">절차</th><th class="r">인정</th><th>종합 지수</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
@@ -253,9 +252,7 @@ function renderRows() {
       ${AXES.map(a => `<td class="r num">${cell(axisIdx(c, a))}</td>`).join("")}
       <td><div class="idx"><strong class="num">${cell(idx)}</strong>
         <span class="bar"><i class="b-${g.tone}" style="width:${idx ?? 0}%"></i></span>
-        <span class="grade t-${g.tone}">${g.label}</span></div></td>
-      <td><span class="src">${c.source === "ai" ? "AI 조사" : "팀 시범"}</span></td>
-    </tr>`;
+        <span class="grade t-${g.tone}">${g.label}</span></div></td>    </tr>`;
   }).join("");
 }
 
@@ -269,7 +266,7 @@ function renderDetail() {
         <h3>${esc(c.name)}</h3>
         <div class="meta">${esc(c.region)}${c.scope ? " · " + esc(c.scope) : ""}</div>
         <div class="meta">${c.source === "team"
-          ? "팀 시범 채점 · 2026년 11월 공개자료 기준 잠정값"
+          ? "2026년 11월 공개자료 기준"
           : `AI 조사 · 자료 신뢰도 ${esc(c.confidence)} · ${esc(c.date)} · AI 채점은 틀릴 수 있으니 근거 링크를 확인해 주세요.`}</div>
       </div>
       <div class="d-score"><strong class="num">${cell(idx)}</strong><span class="grade t-${g.tone}">${g.label}</span></div>
