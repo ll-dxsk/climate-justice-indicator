@@ -48,17 +48,58 @@ export const ALL = AXES.flatMap(a => a.indicators);
 
 // 점수: 0~3, "N" = 자료 부족(평가 유보), "X" = 해당 없음. 둘 다 지수 계산에서 빠진다.
 // 팀 시범 채점(2026년 11월, 공개자료 기준 잠정값).
+// refs: 팀 보고서(사례 및 확정지표 보고서, 절차적 정의 지표 연구)가 인용한 사례별 문서.
+const IEA_WEI = { title: "IEA, World Energy Investment 2025 (JETP 재원 구성, p.132)", url: "https://iea.blob.core.windows.net/assets/1b241aed-501c-4612-947e-8b4ad0d234a0/WorldEnergyInvestment2025.pdf" };
 export const CASES = [
   { name: "폴란드 실레지아 (TJTP)", region: "폴란드", source: "team",
-    s: { d1: 2, d2: 1, d3: "N", p1: 2, p2: 2, p3: 1, r1: 1, r2: 2, r3: 1 } },
+    s: { d1: 2, d2: 1, d3: "N", p1: 2, p2: 2, p3: 1, r1: 1, r2: 2, r3: 1 },
+    refs: [
+      { title: "Silesian Voivodeship, Territorial Just Transition Plan 2021 (영문본)", url: "https://transformacja.slaskie.pl/images/Dokumenty/1683275795_sfc_tjtp_eng.pdf" },
+      { title: "European Commission, Case Study: Regional Observatory of the Transition Process in Silesia (ROPT)", url: "https://ec.europa.eu/regional_policy/sources/funding/just-transition-fund/case-study-regional-observatory-transition-process-silesia.pdf" },
+      { title: "European Commission, Support to the implementation of just transition in Poland", url: "https://reforms-investments.ec.europa.eu/technical-support-instrument-0/green-transition/support-implementation-just-transition-poland_en" },
+      { title: "IEA, Poland's just transition for coal workers", url: "https://www.iea.org/policies/17726-polands-just-transition-for-coal-workers" },
+      { title: "World Bank, Support for Polish Coal Regions in Transition", url: "https://www.worldbank.org/en/country/poland/publication/support-for-polish-coal-regions-in-transition" },
+    ] },
   { name: "EU ETS2 · 사회기후기금", region: "EU", source: "team",
-    s: { d1: 2, d2: "X", d3: 2, p1: 2, p2: 2, p3: 2, r1: 2, r2: "X", r3: "X" } },
+    s: { d1: 2, d2: "X", d3: 2, p1: 2, p2: 2, p3: 2, r1: 2, r2: "X", r3: "X" },
+    refs: [
+      { title: "Regulation (EU) 2023/955 establishing a Social Climate Fund (EUR-Lex)", url: "https://eur-lex.europa.eu/eli/reg/2023/955/oj/eng" },
+      { title: "European Commission, About the EU ETS", url: "https://climate.ec.europa.eu/eu-action/carbon-markets/about-eu-ets_en" },
+      { title: "European Commission, Social Climate Fund", url: "https://employment-social-affairs.ec.europa.eu/policies-and-activities/funding/social-climate-fund_en" },
+      { title: "European Commission, Social Climate Fund National Plans", url: "https://employment-social-affairs.ec.europa.eu/policies-and-activities/funding/social-climate-fund/social-climate-fund-national-plans_en" },
+      { title: "European Commission, Social Climate Fund – Programme performance statement", url: "https://commission.europa.eu/strategy-and-policy/eu-budget/performance-and-reporting/programme-performance-statements/social-climate-fund_en" },
+      { title: "European Commission, EU Climate Action Progress Report 2026, Chapter 7", url: "https://climate.ec.europa.eu/areas-action/climate-strategies-targets/progress-climate-action/eu-climate-action-progress-report-2026/chapter-7-investments-climate-action_en" },
+      { title: "European Parliament, Answer to Parliamentary Question E-002023/2025", url: "https://www.europarl.europa.eu/doceo/document/E-10-2025-002023-ASW_EN.pdf" },
+    ] },
   { name: "남아공 JETP (JET IP)", region: "남아프리카공화국", source: "team",
-    s: { d1: 0, d2: 1, d3: "X", p1: 3, p2: 3, p3: 1, r1: 1, r2: 2, r3: 1 } },
+    s: { d1: 0, d2: 1, d3: "X", p1: 3, p2: 3, p3: 1, r1: 1, r2: 2, r3: 1 },
+    refs: [
+      IEA_WEI,
+      { title: "South Africa JET PMU, JET Investment Register", url: "https://justenergytransition.co.za/jet-investment-register" },
+      { title: "South Africa JET PMU, JET Progress Report Dashboard (Q1 2026)", url: "https://justenergytransition.co.za/jet-progress-report-dashboard-q1-2026" },
+      { title: "South Africa JET PMU, Monitoring, Evaluation and Learning", url: "https://justenergytransition.co.za/monitoring-evaluation-and-learning" },
+      { title: "The Presidency of South Africa, Annual Report 2024/2025", url: "https://www.gov.za/sites/default/files/gcis_document/202511/thepresidencyannualreport2024-2025.pdf" },
+      { title: "UK Government, Advancing the South Africa Just Energy Transition Partnership (COP28)", url: "https://www.gov.uk/government/news/advancing-the-south-africa-just-energy-transition-partnership" },
+    ] },
   { name: "인도네시아 JETP", region: "인도네시아", source: "team",
-    s: { d1: "N", d2: "N", d3: "N", p1: 2, p2: 3, p3: 1, r1: 1, r2: 1, r3: "N" } },
+    s: { d1: "N", d2: "N", d3: "N", p1: 2, p2: 3, p3: 1, r1: 1, r2: 1, r3: "N" },
+    refs: [
+      { title: "JETP Indonesia Secretariat, Comprehensive Investment and Policy Plan (CIPP) 2023", url: "https://jetp-id.org/storage/jetp-comprehensive-investment-and-policy-plan-2023-draft-for-public-consultation-en.pdf" },
+      { title: "JETP Indonesia Secretariat (공식 사이트)", url: "https://jetp-id.org/" },
+      { title: "JETP Indonesia, JETP Progress Report 2025 and Thematic Reports", url: "https://jetp.id/news/jetp-reports-2025" },
+      { title: "JETP Indonesia, 2025 진행보고서 공개협의 결과", url: "https://jetp.id/id/berita/konsultasi-publik-laporan-kemajuan-jetp-2025-telah-selesai" },
+      IEA_WEI,
+    ] },
   { name: "충남 태안 (석탄화력 폐지)", region: "대한민국", source: "team",
-    s: { d1: 1, d2: 1, d3: "N", p1: 2, p2: 2, p3: 1, r1: 1, r2: 2, r3: "N" } },
+    s: { d1: 1, d2: 1, d3: "N", p1: 2, p2: 2, p3: 1, r1: 1, r2: 2, r3: "N" },
+    refs: [
+      { title: "국가법령정보센터, 석탄화력발전소 노동자 및 폐지지역 지원 특별법", url: "https://www.law.go.kr/lsInfoP.do?lsiSeq=289749" },
+      { title: "대한민국 정책브리핑, 태안화력 1호기 발전종료 관련 발표", url: "https://www.korea.kr/news/policyNewsView.do?newsId=148957374" },
+      { title: "태안군, 노동자 역량강화 지원 협약 관련 자료", url: "https://www.taean.go.kr/cop/bbs/BBSMSTR_000000000040/selectBoardArticle.do?nttId=1514285118" },
+      { title: "충청남도, 2045 탄소중립·녹색성장 실현을 위한 계획", url: "https://clik.nanet.go.kr/clikr-collection/bill/041001/12/2026/CLIKC2194056628388308_1.pdf" },
+      { title: "충청남도의회, 탈석탄 지역(태안화력 중심)의 정의로운 전환 대책 마련 (자료집)", url: "https://council.chungnam.go.kr/kr/bbs/download.do?bbs_id=news&uid=36A7E2F977810A1490F369F60F099A1A" },
+      { title: "충청남도의회, 제1차 충청남도 2045 탄소중립 녹색성장 기본계획 이행점검 자료", url: "https://council.chungnam.go.kr/kr/bbs/download.do?bbs_id=action&uid=850BF3044E3BB522A72E1977F3165D29" },
+    ] },
 ];
 
 // 채점된 지표만으로 0~100 지수. 채점된 지표가 없으면 null.

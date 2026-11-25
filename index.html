@@ -195,7 +195,7 @@
       <h3 class="small">지표 채점 기준</h3>
       <dl class="levels" id="levels"></dl>
       <p class="rules">
-        자료를 찾지 못했거나 아직 평가할 시기가 아니면 <b>자료 부족</b>, 제도 구조상 대상이 없으면 <b>해당 없음</b>으로 두고, 둘 다 지수 계산에서 뺍니다.
+        자료를 찾지 못했거나 아직 평가할 시기가 아니면 <b>자료 부족</b>, 제도 구조상 대상이 없으면 <b>해당 없음</b>으로 평가합니다.
       </p>
     </div>
 
@@ -207,7 +207,7 @@
           <tbody id="grades"></tbody>
         </table>
       </div>
-      <p class="rules">지수 = 채점된 지표 점수의 합 ÷ (채점된 지표 수 × 3) × 100. 등급 구간은 팀 임시안입니다.</p>
+      <p class="rules">지수 = 채점된 지표 점수의 합 ÷ (채점된 지표 수 × 3) × 100.</p>
     </div>
   </section>
 </main>
@@ -287,7 +287,7 @@ function renderDetail() {
       }).join("")}
     </div>`).join("")}</div>
     ${c.note ? `<div class="memo"><b>평가 메모</b>${esc(c.note)}</div>` : ""}
-    ${c.refs?.length ? `<details class="refs"><summary>검색한 문서 ${c.refs.length}건</summary>
+    ${c.refs?.length ? `<details class="refs"><summary>${c.source === "team" ? "참고한" : "검색한"} 문서 ${c.refs.length}건</summary>
       ${c.queries?.length ? `<p class="sub">검색어: ${c.queries.map(esc).join(" · ")}</p>` : ""}
       <ol>${c.refs.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ol></details>` : ""}`;
 }
